@@ -28,7 +28,7 @@
 
 \end{titlepage}
 
-\section{Additional Questions}
+\section{Questions}
 \begin{enumerate}
 
     \item Go to the lab webpage and download the template write-up. Read it
@@ -37,7 +37,12 @@
         is the font? From here on when you include your source code in your lab
         write-up you must adhere to that font type and size.
 
-        The text of the answer
+            It should be noted that this question assumes that the .doc
+            template was downloaded rather than the .tex template, which
+            provides none of the same information, despite the website implying
+            that they were the same.  I originally downloaded just the .tex
+            template (and am using it for this document) and was very confused.
+            In the .doc template, 8pt Courier New font is used.
 
     \item Take a look at the code you downloaded for today’s lab. Notice the
         lines that begin with .def and .equ followed by some type of
@@ -46,36 +51,50 @@
         .equ directives (HINT: see section 5.1 of the AVR Starter Guide given
         on the lab webpage).
 
-        answer
+            Pre-compiler directives are instructions specifically for the
+            compiler that are executed during the build process (and not on the
+            AVR).  According to the AVR Starter Guide, a '.def' directive
+            defines a symbolic name on a register, while a '.equ' directive
+            sets a symbol equal to an expression.
 
     \item Take another look at the code you downloaded for today’s lab. Read
         the comment that describes the macro definitions. From that explanation
         determine the 8-bit binary value of the following expressions. Note:
         the numbers below are decimal values.
 
-        \begin{enumerate}[a.]
+            It should be noted that the explanation in the source code
+            incorrectly states that the '$|$' is a logical OR; it is in fact a
+            bitwise OR.
 
-            \item $(1<<2)$
-            
-                answer
+            \begin{enumerate}[a.]
 
-            \item $(1<<2)$
-            
-                answer
-
-            \item $(4>>1)$
+                \item $(1<<2)$
                 
-                answer
+                    $b00000001<<2$\\
+                    $b00000100$
 
-            \item $(1<<4)$
-            
-                answer
+                \item $(2<<1)$
+                
+                    $b00000010<<1$\\
+                    $b00000100$
 
-            \item $(6>>1|1<<6)$
-            
-                answer
+                \item $(4>>1)$
+                    
+                    $b00000100>>4$\\
+                    $b00000010$
 
-        \end{enumerate}
+                \item $(1<<4)$
+                
+                    $b00000001<<4$\\
+                    $b00010000$
+
+                \item $(6>>1|1<<6)$
+                
+                    $b00000110>>1|b00000001<<6$\\
+                    $b00000011|b01000000$\\
+                    $b01000011$
+
+            \end{enumerate}
 
 \end{enumerate}
 
