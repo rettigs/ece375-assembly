@@ -1,0 +1,11 @@
+ECE375 Lab 2 Prelab
+Sean Rettig
+
+while true:
+    if hitright:
+        move back for 1000ms
+        move left for 1000ms
+    if hitleft:
+        move back for 1000ms
+        move right for 1000ms
+    move forward
