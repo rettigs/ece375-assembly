@@ -1,0 +1,37 @@
+My answer:
+
+# Fetch cycle
+MAR <- PC
+MDR < M(MAR), PC <- PC + 1
+IR <- MDR_opcode, MAR <- MDR_address
+
+# Execute cycle
+
+# Keep original value of AC
+TEMP <- AC
+
+# Load, increment, and store Y
+MDR <- M(MAR)
+AC <- MDR
+AC <- AC + 1
+MDR <- AC
+M(MAR) <- MDR
+
+# Skip if Y + 1 == 0
+AC <- AC + 1 # Is this necessary? The part of the HW that says it requires a second addition might be a typo; the wiki page doesn't mention it.
+if (Z == 1) then PC <- PC + 1
+
+# Restore AC
+AC <- TEMP
+
+Optimized version of the above:
+
+MAR <- PC
+MDR < M(MAR), PC <- PC + 1
+IR <- MDR_opcode, MAR <- MDR_address
+TEMP <- AC, MDR <- M(MAR)
+AC <- MDR
+AC <- AC + 1
+MDR <- AC
+M(MAR) <- MDR, AC <- AC + 1
+if (Z == 1) then PC <- PC + 1, AC <- TEMP
