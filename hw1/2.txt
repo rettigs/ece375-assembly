@@ -1,0 +1,58 @@
+My answer:
+TEMP <- MAR     (store pointer address in temp)
+MDR <- M(MAR)   (load pointer from memory to mdr)
+MAR <- MDR      (load pointer from mdr to mar)
+MDR <- AC       (move data to mdr)
+M(MAR) <- MDR   (write data to memory)
+MAR <- TEMP     (move pointer address to mar)
+MDR <- M(MAR)   (load pointer from memory to mdr)
+AC <- MDR       (move pointer to ac)
+AC <- AC + 1    (increment pointer)
+MDR <- AC       (move pointer to mdr)
+M(MAR) <- MDR   (write pointer to memory)
+
+Optimized version of the above:
+TEMP <- MAR, MDR <- M(MAR)
+MAR <- MDR
+MDR <- AC
+M(MAR) <- MDR
+MAR <- TEMP
+MDR <- M(MAR)
+AC <- MDR
+AC <- AC + 1
+MDR <- AC
+M(MAR) <- MDR
+
+Different answer:
+MDR <- M(MAR)   (load old pointer from memory to mdr)
+TEMP <- AC      (store data in temp)
+AC <- MDR       (store old pointer in ac)
+MDR <- TEMP     (store data in mdr)
+TEMP <- MAR     (store pointer address in temp)
+MAR <- AC       (store old pointer in mar)
+M(MAR) <- MDR   (write data to memory)
+AC <- AC + 1    (increment pointer)
+MAR <- TEMP     (store pointer address in mar)
+MDR <- AC       (store new pointer in mdr)
+M(MAR) <- MDR   (write new pointer to memory)
+
+Optimized version of the above:
+MDR <- M(MAR)   (load old pointer from memory to mdr), TEMP <- AC       (store data in temp)
+AC <- MDR       (store old pointer in ac)
+MDR <- TEMP     (store data in mdr)
+TEMP <- MAR     (store pointer address in temp)
+MAR <- AC       (store old pointer in mar)
+M(MAR) <- MDR   (write data to memory), AC <- AC + 1    (increment pointer)
+MAR <- TEMP     (store pointer address in mar)
+MDR <- AC       (store new pointer in mdr)
+M(MAR) <- MDR   (write new pointer to memory)
+
+Optimized version of the above:
+MDR <- M(MAR)   (load old pointer from memory to mdr)
+TEMP <- MAR     (store pointer address in temp)
+MAR <- MDR      (store old pointer in mar)
+MDR <- AC       (store data in mdr)
+AC <- MAR       (store old pointer in ac), M(MAR) <- MDR    (write data to memory)
+AC <- AC + 1    (increment pointer), MAR <- TEMP        (store pointer address in mar)
+MDR <- AC       (store new pointer in mdr)
+M(MAR) <- MDR   (write new pointer to memory)
