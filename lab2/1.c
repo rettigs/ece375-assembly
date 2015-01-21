@@ -26,21 +26,23 @@ int main(void)
 	DDRD =0b00000000;	//Set up Port D for Input/Output
 	PORTD=0b00000011;	//Set pullup resistors on
 
+    PORTB=0b01100000;	//Move forward
+
 	while (1)	       					// Loop Forever
 	{
-		PORTB=0b01100000;	//Move forward
-		
 		if(PIND & 0b00000011 == 0b00000001){ //Right whisker hit when PIND == 0bxxxxxx01
 			PORTB=0b00000000;	//Reverse
 			_delay_ms(1000);
 			PORTB=0b00100000; //Turn Left
 			_delay_ms(1000);
+            PORTB=0b01100000;	//Move forward
 		}
 		else if(PIND & 0b00000011 == 0b00000001 || PIND & 0b00000011 == 0b00000011){ //Left whisker hit or both whiskers hit at once
 			PORTB=0b00000000;	//Reverse
 			_delay_ms(1000);
 			PORTB=0b01000000; //Turn Right
 			_delay_ms(1000);	
+            PORTB=0b01100000;	//Move forward
 		}
 	};
 }

@@ -1,0 +1,111 @@
+% template created by: Russell Haering. arr. Joseph Crop
+\documentclass[12pt,letterpaper]{article}
+\usepackage{anysize}
+\usepackage{verbatim}
+\marginsize{2cm}{2cm}{1cm}{1cm}
+
+\begin{document}
+
+\begin{titlepage}
+    \vspace*{4cm}
+    \begin{flushright}
+    {\huge
+        ECE 375 Lab 1\\[1cm]
+    }
+    {\large
+        Introduction to AVR Tools
+    }
+    \end{flushright}
+    \begin{flushleft}
+    Lab Time: Wednesday 5-7
+    \end{flushleft}
+    \begin{flushright}
+    Sean Rettig
+    \vfill
+    \rule{5in}{.5mm}\\
+    TA Signature
+    \end{flushright}
+
+\end{titlepage}
+
+\section{Introduction}
+
+The purpose of the second lab was to acquaint ourselves with the workflow and
+concepts associated with programming our AVRs in the C programming language.
+We accomplished this by compiling and uploading the given "dance" program to
+our AVRs, examining its code to learn how to use the AVR's I/O ports to
+manipulate motors, and finally writing our own basic "BumpBot" program using
+this new knowledge.
+
+\section{Program Overview}
+
+As described in this lab and the previous lab, this program implements basic
+"BumpBot" functionality by moving forward until one of its two front whiskers
+is hit, at which point it will reverse for a short time, turn away from the
+object it hit (left if the right whisker was hit, or right if the left or both
+whiskers were hit), and resume moving forward indefinitely.
+
+Due to the small size of our program, no separate subroutines/functions were
+used.  The program first initializes the ports to be used for input (PORTB) and
+output (PORTD), allowing the control of the motors and the reading of whisker
+data, respectively.  Then, the program instructs the motors to begin moving
+forward (by setting PORTD equal to the appropriate bit string) before entering
+an infinite loop in which it checks repeatedly if either of the whiskers were
+were hit.  This was done by reading PIND and masking all bits except the one
+for each whisker by performing a bitwise AND on PIND with a bit string of all
+zeroes except in that whisker's bit; the whisker is active if the resulting bit
+string is equal to one consisting of all zeroes except that whisker's bit, or
+inactive otherwise.  If a whisker is hit, the motors are instructed to move the
+bot backwards for 1000 ms, to the side for 1000 ms (once again, left if the
+right whisker was hit, or right if the left or both whiskers were hit), and
+finally forward again.  The timing of the movement periods was accomplished
+simply by sending the motor commands and then simply waiting 1000 ms using
+\_delay\_ms(1000) before sending the next command.
+
+\section{Additional Questions}
+\begin{enumerate}
+
+    \item This lab required you to begin using new tools for compiling and
+        downloading code to your AVR-enabled TekBot using the C language.
+        Explain why it is beneficial to write code in a language that can be
+        ‘cross compiled.’ Also explain some of the problems of writing in this
+        way.
+
+        It can be beneficial to write code in a language that can be
+        cross-compiled because it allows programs to execute on various
+        different architectures/platforms, often with little or no
+        modifications to the code itself.  This is opposed to a language that
+        cannot be cross compiled, for which programs often have to be
+        significantly modified or sometimes completely rewritten in order to
+        run on different hardware than was originally planned.  However,
+        cross-compiled languages can also cause problems; because they are
+        often higher-level and not specifically designed for the hardware it
+        will run on, it can sometimes be difficult, unintuitive, or impossible
+        to perform certain actions that a more hardware-specific language could
+        do with ease.  Furthermore, because languages that can be cross
+        compiled are more generic, there is often a performance penalty to be
+        paid as the compiler doesn't always know the intention of the
+        programmer and cannot always optimize a program to be as efficient as
+        it would be were it written in a more hardware-specific language.
+
+    \item Your program does essentially the same thing as the assembly program
+        you downloaded for Lab 1. Compare the size of the output hex files and
+        explain the differences in size between them.
+
+
+
+\end{enumerate}
+
+\section{Difficulties}
+
+Text goes here
+
+\section{Conclusion}
+
+Text goes here
+
+\section{Source Code}
+
+\verbatiminput{1.c}
+
+\end{document}
