@@ -9,7 +9,7 @@
     \vspace*{4cm}
     \begin{flushright}
     {\huge
-        ECE 375 Lab 1\\[1cm]
+        ECE 375 Lab 2\\[1cm]
     }
     {\large
         Introduction to AVR Tools
@@ -51,15 +51,16 @@ data, respectively.  Then, the program instructs the motors to begin moving
 forward (by setting PORTD equal to the appropriate bit string) before entering
 an infinite loop in which it checks repeatedly if either of the whiskers were
 were hit.  This was done by reading PIND and masking all bits except the one
-for each whisker by performing a bitwise AND on PIND with a bit string of all
-zeroes except in that whisker's bit; the whisker is active if the resulting bit
-string is equal to one consisting of all zeroes except that whisker's bit, or
-inactive otherwise.  If a whisker is hit, the motors are instructed to move the
-bot backwards for 1000 ms, to the side for 1000 ms (once again, left if the
-right whisker was hit, or right if the left or both whiskers were hit), and
-finally forward again.  The timing of the movement periods was accomplished
-simply by sending the motor commands and then simply waiting 1000 ms using
-\_delay\_ms(1000) before sending the next command.
+for each whisker by performing a bitwise OR on PIND with a bit string of all 1s
+except in that whisker's bit; the whisker is active if the resulting bit string
+is equal to one consisting of all 1s except that whisker's bit, or inactive
+otherwise (i.e. the whisker is hit if its bit is a 0, because they are active
+low).  If a whisker is hit, the motors are instructed to move the bot backwards
+for 1000 ms, to the side for 1000 ms (once again, left if the right whisker was
+hit, or right if the left or both whiskers were hit), and finally forward
+again.  The timing of the movement periods was accomplished simply by sending
+the motor commands and then simply waiting 1000 ms using \_delay\_ms(1000)
+before sending the next command.
 
 \section{Additional Questions}
 \begin{enumerate}
@@ -152,14 +153,17 @@ int main(void)
     
     while (1)                           // Loop Forever
         {
-            if((PIND | 0b11111100) == 0b11111110){ //Right whisker hit when PIND == 0bxxxxxx10
+            //Right whisker hit when PIND == 0bxxxxxx10
+            if((PIND | 0b11111100) == 0b11111110){
                 PORTB=0b00000000;   //Reverse
                 _delay_ms(1000);
                 PORTB=0b00100000; //Turn Left
                 _delay_ms(1000);
                 PORTB=0b01100000;   //Move forward
             }
-            else if((PIND | 0b11111100) == 0b11111101 || (PIND | 0b11111100) == 0b11111100){ //Left whisker hit or both whiskers hit at once
+            //Left whisker hit or both whiskers hit at once
+            else if((PIND | 0b11111100) == 0b11111101
+                 || (PIND | 0b11111100) == 0b11111100){
                 PORTB=0b00000000;   //Reverse
                 _delay_ms(1000);
                 PORTB=0b01000000; //Turn Right
