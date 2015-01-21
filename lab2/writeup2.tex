@@ -92,17 +92,38 @@ simply by sending the motor commands and then simply waiting 1000 ms using
         you downloaded for Lab 1. Compare the size of the output hex files and
         explain the differences in size between them.
 
-
+        The size of the hex file for the assembly BumpBot program was 485
+        bytes, while the C version was 676 bytes.  This is likely related to
+        the performance penalties discussed in the previous question; the
+        filesize is bigger because it's running more instructions, and it's
+        running more instructions because of the overhead of a higher-level,
+        more generic language.  The compiler isn't able to optimize the C code
+        to be as efficient as straight assembly code.
 
 \end{enumerate}
 
 \section{Difficulties}
 
-Text goes here
+This section is entirely optional.  Your grade does not depend on it.  But it
+is recommended that, if you had difficulties of some sort, list them here and
+how you solved them.  By documenting your “bugs” and “bug fixes”, you can then
+quickly go back to these sections in the event that the same bug occurs again,
+allowing you to quickly fix the problem.  An example difficulty may be:
+
+Upon loading the program into the TekBot, the TekBot was turning left instead
+of forward.  The problem was a wiring issue with the left motor as the left
+direction and enable wires were crossed.  By swapping the wires, the Left Motor
+began moving forward and the problem was fixed.
 
 \section{Conclusion}
 
-Text goes here
+The conclusion should sum up the report along with maybe a personal though on
+the lab.  For example, in this lab, we were simply required to set up an
+AVRStudio4 project with an example program, compile this project and then
+download it onto our TekBot bases.  The result of this program allowed the
+TekBot to behave in a BumpBot fashion.  The lab was great and allowed us the
+time to build the TekBot with the AVR board and learn the software for this
+lab.
 
 \section{Source Code}
 
