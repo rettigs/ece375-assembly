@@ -1,0 +1,33 @@
+1. What is the stack pointer? How is the stack pointer used and how do you
+initialize it? Provide pseudo-code (NOT actual assembly code) that illustrates
+how to initialize the stack pointer.
+
+The stack pointer points to the top of the stack so that there is always a
+reference to it.  It is decremented whenever new things are added to the stack
+(like with "push" or "call") and incremented whenever things are removed from
+the stack (like with "pop" or "ret").  It can be initialized using code like
+the following pseudocode:
+
+    include m128def.inc
+    write low byte of end SRAM address (LOW(RAMEND)) to the SPL
+    write high byte of end SRAM address (HIGH(RAMEND)) to the SPH
+
+2. What does the AVR instruction LPM do and how do you use it? Provide
+pseudo-code that shows how to use the LPM instruction.
+
+The "LPM" instruction stands for "Load Program Memory", and loads one byte from memory (using the address in the Z register) into the given destination register.  Its use is simple and just requires that a register and Z be specified as operands, like with the following pseudocode:
+
+    load program memory to R12 from the byte pointed to by Z
+
+3. Look at the definition file m128def.inc. What is contained within this
+definition file? What are the benefits of using this definition file?  How
+would you include it into your AVR Assembly program?
+
+m128def.inc appears to mostly contain keywords that are set equal to constants
+using the ".equ" pre-compiler directive.  This is useful because it allows us
+to use these keywords to reference obscure numbers easily, making both reading
+and writing code easier since we don't need to remember or constantly look up
+what each of the numbers mean, get confused about which constants are related,
+or make changes to our code if these constants change for some reason.  It can
+be included by simply adding '.include "m128def.inc"' to the top of our
+assembly programs.
