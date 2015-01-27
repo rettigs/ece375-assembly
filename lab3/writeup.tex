@@ -1,0 +1,239 @@
+% template created by: Russell Haering. arr. Joseph Crop
+\documentclass[12pt,letterpaper]{article}
+\usepackage{anysize}
+\marginsize{2cm}{2cm}{1cm}{1cm}
+
+\begin{document}
+
+\begin{titlepage}
+    \vspace*{4cm}
+    \begin{flushright}
+    {\huge
+        ECE 375 Lab 2\\[1cm]
+    }
+    {\large
+        Introduction to AVR Tools
+    }
+    \end{flushright}
+    \begin{flushleft}
+    Lab Time: Wednesday 5-7
+    \end{flushleft}
+    \begin{flushright}
+    Sean Rettig
+    \vfill
+    \rule{5in}{.5mm}\\
+    TA Signature
+    \end{flushright}
+
+\end{titlepage}
+
+\section{Introduction}
+
+The purpose of the second lab was to acquaint ourselves with the workflow and
+concepts associated with programming our AVRs in the C programming language.
+We accomplished this by compiling and uploading the given "dance" program to
+our AVRs, examining its code to learn how to use the AVR's I/O ports to
+manipulate motors, and finally writing our own basic "BumpBot" program using
+this new knowledge.
+
+\section{Program Overview}
+
+As described in this lab and the previous lab, this program implements basic
+"BumpBot" functionality by moving forward until one of its two front whiskers
+is hit, at which point it will reverse for a short time, turn away from the
+object it hit (left if the right whisker was hit, or right if the left or both
+whiskers were hit), and resume moving forward indefinitely.
+
+Due to the small size of our program, no separate subroutines/functions were
+used.  The program first initializes the ports to be used for input (PORTB) and
+output (PORTD), allowing the control of the motors and the reading of whisker
+data, respectively.  Then, the program instructs the motors to begin moving
+forward (by setting PORTD equal to the appropriate bit string) before entering
+an infinite loop in which it checks repeatedly if either of the whiskers were
+were hit.  This was done by reading PIND and masking all bits except the one
+for each whisker by performing a bitwise OR on PIND with a bit string of all 1s
+except in that whisker's bit; the whisker is active if the resulting bit string
+is equal to one consisting of all 1s except that whisker's bit, or inactive
+otherwise (i.e. the whisker is hit if its bit is a 0, because they are active
+low).  If a whisker is hit, the motors are instructed to move the bot backwards
+for 1000 ms, to the side for 1000 ms (once again, left if the right whisker was
+hit, or right if the left or both whiskers were hit), and finally forward
+again.  The timing of the movement periods was accomplished simply by sending
+the motor commands and then simply waiting 1000 ms using \_delay\_ms(1000)
+before sending the next command.
+
+\section{Additional Questions}
+\begin{enumerate}
+
+    \item This lab required you to begin using new tools for compiling and
+        downloading code to your AVR-enabled TekBot using the C language.
+        Explain why it is beneficial to write code in a language that can be
+        ‘cross compiled.’ Also explain some of the problems of writing in this
+        way.
+
+        It can be beneficial to write code in a language that can be
+        cross-compiled because it allows programs to execute on various
+        different architectures/platforms, often with little or no
+        modifications to the code itself.  This is opposed to a language that
+        cannot be cross compiled, for which programs often have to be
+        significantly modified or sometimes completely rewritten in order to
+        run on different hardware than was originally planned.  However,
+        cross-compiled languages can also cause problems; because they are
+        often higher-level and not specifically designed for the hardware it
+        will run on, it can sometimes be difficult, unintuitive, or impossible
+        to perform certain actions that a more hardware-specific language could
+        do with ease.  Furthermore, because languages that can be cross
+        compiled are more generic, there is often a performance penalty to be
+        paid as the compiler doesn't always know the intention of the
+        programmer and cannot always optimize a program to be as efficient as
+        it would be were it written in a more hardware-specific language.
+
+    \item Your program does essentially the same thing as the assembly program
+        you downloaded for Lab 1. Compare the size of the output hex files and
+        explain the differences in size between them.
+
+        The size of the hex file for the assembly BumpBot program was 485
+        bytes, while the C version was 676 bytes.  This is likely related to
+        the performance penalties discussed in the previous question; the
+        filesize is bigger because it's running more instructions, and it's
+        running more instructions because of the overhead of a higher-level,
+        more generic language.  The compiler isn't able to optimize the C code
+        to be as efficient as straight assembly code.
+
+\end{enumerate}
+
+\section{Conclusion}
+
+The conclusion should sum up the report along with maybe a personal though on
+the lab.  For example, in this lab, we were simply required to set up an
+AVRStudio4 project with an example program, compile this project and then
+download it onto our TekBot bases.  The result of this program allowed the
+TekBot to behave in a BumpBot fashion.  The lab was great and allowed us the
+time to build the TekBot with the AVR board and learn the software for this
+lab.
+
+This lab was fairly basic in its request, simply requiring us to write a
+BumpBot program in C for our AVRs.  However, even though the task was simple,
+it was ideal because it allowed us to focus on working with the AVR's I/O
+interfaces, and as such was a great learning experience that introduced me to
+the concepts involved with embedded C programming and using the AVR.
+
+\section{Source Code}
+
+\begin{verbatim}
+/*
+This code will cause a TekBot connected to the AVR board to
+move forward and when it touches an obstacle, it will reverse
+and turn away from the obstacle and resume forward motion.
+
+PORT MAP
+Port B, Pin 4 -> Output -> Right Motor Enable
+Port B, Pin 5 -> Output -> Right Motor Direction
+Port B, Pin 7 -> Output -> Left Motor Enable
+Port B, Pin 6 -> Output -> Left Motor Direction
+Port D, Pin 1 -> Input -> Left Whisker
+Port D, Pin 0 -> Input -> Right Whisker
+*/
+
+#define F_CPU 16000000
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdio.h>
+
+int main(void)
+{
+
+    DDRB =0b11110000;   //Set up Port B for Input/Output
+    PORTB=0b11110000;   //Turn off both motors
+
+    DDRD =0b00000000;   //Set up Port D for Input/Output
+    PORTD=0b00000011;   //Set pullup resistors on
+
+    PORTB=0b01100000;   //Move forward
+    
+    while (1)                           // Loop Forever
+        {
+            //Right whisker hit when PIND == 0bxxxxxx10
+            if((PIND | 0b11111100) == 0b11111110){
+                PORTB=0b00000000;   //Reverse
+                _delay_ms(1000);
+                PORTB=0b00100000; //Turn Left
+                _delay_ms(1000);
+                PORTB=0b01100000;   //Move forward
+            }
+            //Left whisker hit or both whiskers hit at once
+            else if((PIND | 0b11111100) == 0b11111101
+                 || (PIND | 0b11111100) == 0b11111100){
+                PORTB=0b00000000;   //Reverse
+                _delay_ms(1000);
+                PORTB=0b01000000; //Turn Right
+                _delay_ms(1000);
+                PORTB=0b01100000;   //Move forward
+            }
+        };
+    }
+\end{verbatim}
+
+\pagebreak
+
+\section{Challenge Source Code}
+
+\begin{verbatim}
+/*
+This code will cause a Tekbot to push small objects across a tabletop by moving
+forward until it hits an object, continuing for a short time, backing up
+slightly and turning slightly towards it, and then continuing forward again,
+repeating all steps each time it hits the object.
+
+PORT MAP
+Port B, Pin 4 -> Output -> Right Motor Enable
+Port B, Pin 5 -> Output -> Right Motor Direction
+Port B, Pin 7 -> Output -> Left Motor Enable
+Port B, Pin 6 -> Output -> Left Motor Direction
+Port D, Pin 1 -> Input -> Left Whisker
+Port D, Pin 0 -> Input -> Right Whisker
+*/
+
+#define F_CPU 16000000
+#include <avr/io.h>
+#include <util/delay.h>
+#include <stdio.h>
+
+int main(void)
+{
+
+    DDRB =0b11110000;   //Set up Port B for Input/Output
+    PORTB=0b11110000;   //Turn off both motors
+
+    DDRD =0b00000000;   //Set up Port D for Input/Output
+    PORTD=0b00000011;   //Set pullup resistors on
+
+    PORTB=0b01100000;   //Move forward
+    
+    while (1)                           // Loop Forever
+        {
+            //Right whisker hit when PIND == 0bxxxxxx10
+            if((PIND | 0b11111100) == 0b11111110){
+                _delay_ms(1000);    //Keep going
+                PORTB=0b00000000;   //Reverse
+                _delay_ms(200);
+                PORTB=0b01000000; //Turn Right
+                _delay_ms(200);
+
+                PORTB=0b01100000;   //Move forward
+            }
+            //Left whisker hit or both whiskers hit at once
+            else if((PIND | 0b11111100) == 0b11111101
+                 || (PIND | 0b11111100) == 0b11111100){
+                _delay_ms(1000);    //Keep going
+                PORTB=0b00000000;   //Reverse
+                _delay_ms(200);
+                PORTB=0b00100000; //Turn Left
+                _delay_ms(200);
+                PORTB=0b01100000;   //Move forward
+            }
+        };
+    }
+\end{verbatim}
+
+\end{document}
