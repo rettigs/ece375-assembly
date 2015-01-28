@@ -36,14 +36,39 @@ The purpose of the third lab was not only to acquaint ourselves with the concept
 
 This is a fairly simple program that just loads two predefined strings and displays them on the LCD display.
 
-\section{Initialization Routine}
+\subsection{Initialization Routine}
 
 The stack pointer is first initialized so that that stack can be used.  Then the LCD display initialization subroutine is called, and our two strings are transferred from program memory to data memory in two separate loops.  Each loop first loads the program memory address into the Z register and the data memory address that the LCD screen reads from into the Y register.  Then the data is transferred from where Z points to where Y points byte-by-byte using an intermediate register and post-incrementing Z and Y.  This continues until the entire string has been copied.
+
+\subsection{Main Routine}
+
+Since all of our data has already been copied to the proper location in data memory by the time the main routine executes, all that is left to be done is call the "LCDWrite" routine to read the strings from data memory and write them to the LDC Display.  The program then enters an infinite loop so that it doesn't continue executing the rest of program memory (which contains things like our strings).
 
 \section{Additional Questions}
 \begin{enumerate}
 
-    \item question
+    \item Take a look at the code you downloaded for today’s lab. Notice the
+        lines that begin with .def and .equ followed by some type of
+        expression. These are known as pre-compiler directives. Define
+        pre-compiler directive. What is the difference between the .def and
+        .equ directives? (HINT: see section 5.1 of the AVR Starter Guide given
+        on the lab webpage.)
+
+        answer
+
+    \item In this lab, you were asked to manipulate data by moving it around in
+        memory. In fact, the AVR architecture has two different memories, a
+        program memory and data memory. Briefly explain the differences and
+        purposes of these memories within your write up.
+
+        answer
+
+    \item You also learned how to make function calls. Explain how the function
+        call works, its connection to the memory stack, and why a RET
+        instruction must be called to return from a function. To help you
+        understand, comment out the stack pointer initialization in the
+        beginning of the code and try running the program. Observe and comment
+        on this behavior.
 
         answer
 
