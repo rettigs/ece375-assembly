@@ -54,14 +54,25 @@ Since all of our data has already been copied to the proper location in data mem
         .equ directives? (HINT: see section 5.1 of the AVR Starter Guide given
         on the lab webpage.)
 
-        answer
+        Pre-compiler directives are instructions specifically for the compiler
+        that are executed during the build process (and not on the AVR).
+        According to the AVR Starter Guide, a '.def' directive defines a
+        symbolic name on a register, while a '.equ' directive sets a symbol
+        equal to an expression.
 
     \item In this lab, you were asked to manipulate data by moving it around in
         memory. In fact, the AVR architecture has two different memories, a
         program memory and data memory. Briefly explain the differences and
         purposes of these memories within your write up.
 
-        answer
+        The program memory is only writable while flashing the AVR using the
+        programmer, and is otherwise read-only, such as when code is executing.
+        It holds the contents of programs as well as any constants embedded in
+        the program using .DB and/or .DW pre-compiler directives.  The data
+        memory is where all other data is stored, and is both readable and
+        writeable.  The GPRs and IO registers are also part of the data memory
+        addressing scheme.  However, the data memory is only 4KB, while program
+        memory is 128KB.
 
     \item You also learned how to make function calls. Explain how the function
         call works, its connection to the memory stack, and why a RET
@@ -70,7 +81,15 @@ Since all of our data has already been copied to the proper location in data mem
         beginning of the code and try running the program. Observe and comment
         on this behavior.
 
-        answer
+        Function calls begin with the "CALL" or "RCALL" instruction with an
+        address to the beginning of a subroutine in program memory as the
+        operand.  This then places the current program memory location on the
+        stack and sets the program counter (PC) equal to the new address,
+        effectively causing the flow of execution to continue at the beginning
+        of the called function/subroutine.  Once the subroutine is finished, it
+        uses a RET instruction to pop the address from the stack and load it
+        back into PC, returning program execution to where it left off before
+        the function call.
 
 \end{enumerate}
 
