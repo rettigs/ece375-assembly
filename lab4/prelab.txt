@@ -1,0 +1,20 @@
+ECE 375 Lab 4 Prelab
+Sean Rettig
+
+1. For this lab, you will be asked to perform arithmetic operations on numbers
+that are larger than 8-bits. To do this, you should understand the different
+arithmetic operations supported by the AVR Architecture. List and describe all
+the different forms of ADD, SUB, and MUL (i.e. ADC, SUBI, MULF, etc.).
+
+ADC: Add with carry - Two registers and the carry bit are added and the result is placed in the first register.
+ADD: Add without carry - Two registers are added and the result is placed in the first register, with the carry bit ignored.
+ADIW: Adds a register pair (of the upper four register pair) to an immediate value (from 0-63).
+SBC: Subtract with carry - Two registers and the carry bit are subtracted and the result is placed in the first register.
+SUB: Subtract with carry - Two registers are subtracted and the result is placed in the first register, with the carry bit ignored.
+
+
+2. Write pseudo-code that describes a function that will take two 16-bit
+numbers in data memory addresses $0110-$0111 and $0121- $0122 and add them
+together. The function will then store the resulting 16-bit number at the
+address $0100-$0101. (Hint: The upper address corresponds to the high byte of
+the number and don’t forget about the carry in bit.)
