@@ -26,3 +26,9 @@ numbers in data memory addresses $0110-$0111 and $0121- $0122 and add them
 together. The function will then store the resulting 16-bit number at the
 address $0100-$0101. (Hint: The upper address corresponds to the high byte of
 the number and don’t forget about the carry in bit.)
+
+    copy first number into a register pair from data memory
+    copy second number into another register pair from data memory
+    add low byte of each register pair
+    add high byte of each register pair and the carry bit
+    copy first register pair to destination in data memory
