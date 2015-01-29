@@ -8,10 +8,18 @@ the different forms of ADD, SUB, and MUL (i.e. ADC, SUBI, MULF, etc.).
 
 ADC: Add with carry - Two registers and the carry bit are added and the result is placed in the first register.
 ADD: Add without carry - Two registers are added and the result is placed in the first register, with the carry bit ignored.
-ADIW: Adds a register pair (of the upper four register pair) to an immediate value (from 0-63).
+ADIW: Add Immediate to Word - Adds a register pair (of the upper four register pairs) to an immediate value (from 0-63) and puts the result in the register pair.
 SBC: Subtract with carry - Two registers and the carry bit are subtracted and the result is placed in the first register.
-SUB: Subtract with carry - Two registers are subtracted and the result is placed in the first register, with the carry bit ignored.
-
+SUB: Subtract without carry - Two registers are subtracted and the result is placed in the first register, with the carry bit ignored.
+SUBI: Subtract Immediate - One register and a constant are subtracted and the result is placed in the register, with the carry bit ignored.
+SBCI: Subtract Immediate with Carry - One register, a constant, and the carry bit are subtracted and the result is placed in the register.
+SBIW: Subtract Immediate from Word - Subtracts a register pair (of the upper four register pairs) and an immediate value (from 0-63) and puts the result in the register pair.
+MUL: Multiply Unsigned - Multiplies the two registers (with unsigned numbers) and places the result in R1 and R0.
+MULS: Multiply Signed - Multiplies the two registers (with signed numbers) and places the result in R1 and R0.
+MULSU: Multiply Signed - Multiplies the two registers (with the first one being signed and the second one being unsigned) and places the signed result in R1 and R0.
+FMUL: Fractional version of MUL; also shifts the result one bit to the left.
+FMULS: Fractional version of MULS; also shifts the result one bit to the left.
+FMULSU: Fractional version of MULSU; also shifts the result one bit to the left.
 
 2. Write pseudo-code that describes a function that will take two 16-bit
 numbers in data memory addresses $0110-$0111 and $0121- $0122 and add them
