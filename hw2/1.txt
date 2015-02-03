@@ -12,19 +12,19 @@ IR_low <- MDR, PC <- PC + 1
 # Execute cycle
 AC_high <- X_high
 AC_low <- X_low
-AC <- AC - 1
+AC <- AC - 1, MDR <- R3
 X_high <- AC_high
 X_low <- AC_low
-MDR <- R3
 MAR <- AC
 M(MAR) <- MDR
 
-# Execute cycle (optimized)
+# Execute cycle (optimized even further)
 AC_high <- X_high
 AC_low <- X_low
 AC <- AC - 1, MDR <- R3
-X_high <- AC_high, MAR <- AC
+X_high <- AC_high, MAR <- AC ; I'm fairly sure this is possible
 X_low <- AC_low, M(MAR) <- MDR
+
 
 2.
 
