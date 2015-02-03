@@ -32,3 +32,28 @@ MAR <- SP, MDR <- M(MAR)
 PC_low <- MDR, SP <- SP + 1
 MAR <- SP, MDR <- M(MAR)
 PC_low <- MDR
+
+3.
+
+a. (assuming the result is placed in R3)
+
+XOR:    MOV R3, R1 ; Keep the original contents
+        MOV R4, R2 ; Keep the original contents
+        MOV R5, R1 ; Keep the original contents
+        MOV R6, R2 ; Keep the original contents
+
+        ; a ^ b = ~(~(a | b) | ~(~a | ~b))
+
+        ; Left half
+        OR  R3, R4
+        COM R3
+
+        ; Right half
+        COM R5
+        COM R6
+        OR  R5, R6
+        COM R5
+
+        ; Together
+        OR  R3, R5
+        COM R3
