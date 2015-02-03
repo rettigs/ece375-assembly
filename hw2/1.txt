@@ -45,9 +45,9 @@ IR_low <- MDR, PC <- PC + 1
 # Execute cycle
 SP <- SP + 1
 MAR <- SP, MDR <- M(MAR)
-PC_low <- MDR, SP <- SP + 1
+PC_high <- MDR, SP <- SP + 1
 MAR <- SP, MDR <- M(MAR)
-PC_high <- MDR
+PC_low <- MDR
 
 3.
 
