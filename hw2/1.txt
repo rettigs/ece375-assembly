@@ -1,4 +1,4 @@
-My answer:
+1.
 
 # Fetch cycle
 MAR <- PC
@@ -14,3 +14,21 @@ AC <- X
 AC <- AC - 1, MDR <- R3
 X <- AC, MAR <- AC
 M(MAR) <- MDR
+
+2.
+
+# Fetch cycle
+MAR <- PC
+MDR <- M(MAR)
+IR_high <- MDR, PC <- PC + 1
+
+MAR <- PC
+MDR <- M(MAR)
+IR_low <- MDR, PC <- PC + 1
+
+# Execute cycle
+SP <- SP + 1
+MAR <- SP, MDR <- M(MAR)
+PC_low <- MDR, SP <- SP + 1
+MAR <- SP, MDR <- M(MAR)
+PC_low <- MDR
