@@ -1,0 +1,16 @@
+My answer:
+
+# Fetch cycle
+MAR <- PC
+MDR <- M(MAR)
+IR_high <- MDR, PC <- PC + 1
+
+MAR <- PC
+MDR <- M(MAR)
+IR_low <- MDR, PC <- PC + 1
+
+# Execute cycle
+AC <- X
+AC <- AC - 1, MDR <- R3
+X <- AC, MAR <- AC
+M(MAR) <- MDR
