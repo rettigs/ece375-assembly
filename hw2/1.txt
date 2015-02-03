@@ -57,3 +57,15 @@ XOR:    MOV R3, R1 ; Keep the original contents
         ; Together
         OR  R3, R5
         COM R3
+
+b.
+
+The top of the stack will contain the return address 0x0010, with the low byte pushed on first, then the high byte:
+
++------+
+| 0x00 |
++------+
+| 0x10 |
++------+
+| etc. |
++------+
