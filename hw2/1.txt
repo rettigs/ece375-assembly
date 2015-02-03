@@ -10,10 +10,21 @@ MDR <- M(MAR)
 IR_low <- MDR, PC <- PC + 1
 
 # Execute cycle
-AC <- X
-AC <- AC - 1, MDR <- R3
-X <- AC, MAR <- AC
+AC_high <- X_high
+AC_low <- X_low
+AC <- AC - 1
+X_high <- AC_high
+X_low <- AC_low
+MDR <- R3
+MAR <- AC
 M(MAR) <- MDR
+
+# Execute cycle (optimized)
+AC_high <- X_high
+AC_low <- X_low
+AC <- AC - 1, MDR <- R3
+X_high <- AC_high, MAR <- AC
+X_low <- AC_low, M(MAR) <- MDR
 
 2.
 
