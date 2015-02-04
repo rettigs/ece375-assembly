@@ -40,3 +40,8 @@ executed in the event of an interrupt.
 Timer/Counter2 Comparison Match: $0012
 External Interrupt 2: $0006
 USART1-Rx Complete: $003C
+
+4.  a. 8, 23
+    b. 3, 20
+    c. 1-2, 9-19, 24-27
+    d. 4-7, 21-22
