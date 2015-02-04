@@ -1,0 +1,35 @@
+ECE 375 Lab 5 Prelab
+Sean Rettig
+
+1. Polling involves the processor constantly checking its I/O ports to see if
+new information has arrived, whereas interrupts allow the processor to perform
+other tasks while it waits, stopping only once new information is ready to
+process.  Polling is easier to implement and can work well for simple programs
+where nothing else but I/O needs to be processed.  Interrupts can work better
+for more complex programs though, since it can be easier and more efficient to
+always be performing normal execution until there is I/O to process, and only
+then taking the time to process it.
+
+2. The EICRA (External Interrupt Control Register A) is an 8-bit register that
+controls how the INT3:0 pins generate interrupts; each pair of bits controls
+one of the INT pins.  Bit 0 controls whether a low level or an edge on INT0
+generates an interrupt (if 0 or 1, respectively).  If bit 0 was "0", bit 1
+should also be "0".  If bit 0 was "1", bit 1 controls whether the falling or
+rising edge of INT0 generates an interrupt (if 0 or 1, respectively).  Bits 2
+through 7 control interrupt behavior for INT1-3, respectively.  Interrupts on
+INT3:0 are generated asynchonously.
+
+The EICRB (External Interrupt Control Register B) is an 8-bit register that
+controls how the INT4:7 pins generate interrupts; each pair of bits controls
+one of the INT pins.  Bit 0 controls whether a low level/logical change or an
+edge on INT4 generates an interrupt (if 0 or 1, respectively).  If bit 0 was
+"0", bit 1 controls whether a low level or any logical change on INT4 generates
+an interrupt (if 0 or 1, respectively).  If bit 0 was "1", bit 1 controls
+whether the falling or rising edge of INT4 generates an interrupt (if 0 or 1,
+respectively).  Bits 2 through 7 control interrupt behavior for INT5-7,
+respectively.  Edge interrupts on INT7:4 require the presence of an I/O clock.
+
+The EIMSK (External Interrupt Mask Register) is an 8-bit register that controls
+which of the pins of INT7:0 are allowed to generate interrupts at all; each "1"
+bit in the EIMSK enables interrupts on the corresponding bit of INT, as long as
+the Status Register (SREG) is set to "1".
