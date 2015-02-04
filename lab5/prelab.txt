@@ -33,3 +33,10 @@ The EIMSK (External Interrupt Mask Register) is an 8-bit register that controls
 which of the pins of INT7:0 are allowed to generate interrupts at all; each "1"
 bit in the EIMSK enables interrupts on the corresponding bit of INT, as long as
 the Status Register (SREG) is set to "1".
+
+3. An interrupt vector is one of the lowest areas of program memory that is
+executed in the event of an interrupt.
+
+Timer/Counter2 Comparison Match: $0012
+External Interrupt 2: $0006
+USART1-Rx Complete: $003C
