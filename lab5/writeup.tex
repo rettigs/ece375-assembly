@@ -1,0 +1,94 @@
+% template created by: Russell Haering. arr. Joseph Crop
+\documentclass[12pt,letterpaper]{article}
+\usepackage{anysize}
+\marginsize{2cm}{2cm}{1cm}{1cm}
+
+\begin{document}
+
+\begin{titlepage}
+    \vspace*{4cm}
+    \begin{flushright}
+    {\huge
+        ECE 375 Lab 5\\[1cm]
+    }
+    {\large
+        Simple Interrupts
+    }
+    \end{flushright}
+    \begin{flushleft}
+    Lab Time: Wednesday 5-7
+    \end{flushleft}
+    \begin{flushright}
+    Sean Rettig
+    \vfill
+    \rule{5in}{.5mm}\\
+    TA Signature
+    \end{flushright}
+
+\end{titlepage}
+
+\section{Introduction}
+
+The purpose of this fifth lab was to familiarize ourselves with the concept of
+interrupts and implement the basic "BumpBot" program that we used earlier using
+interrupts instead of polling.
+
+\section{Program Overview}
+
+This is a very simple program that implements basic "BumpBot" functionality by
+moving forward until one of its two front whiskers is hit, at which point it
+will reverse for a short time, turn away from the object it hit (left if the
+right whisker was hit, or right if the left or both whiskers were hit), and
+resume moving forward indefinitely.
+
+\subsection{Interrupt Vector Initialization}
+
+First, the INT0 and INT1 interrupts are set to activate the HitRight and
+HitLeft routines, respectively.
+
+\subsection{Initialization Routine}
+
+All the initialization routine does is initialize the stack pointer, set up the
+ports to be used for input (PORTD) and output (PORTB) (allowing the control of
+the motors and the reading of whisker data, respectively), and initialize the
+external interrupts INT0 and INT1 (in addition to enabling global interrupts in
+general).
+
+\subsection{Main Routine}
+
+The main routine just makes the Tekbot move forward and keeps looping over
+itself.
+
+\subsection{HitRight Routine}
+
+The HitRight Routine simply moves backward for 1 second, turns left for 1
+second, and starts moving forward again.  It accomplishes the timed events by
+setting movement signals to PORTB and then calling the Wait routine to wait a
+short amount of time before setting a new movement signal.
+
+\subsection{HitLeft Routine}
+
+The HitLeft Routine simply moves backward for 1 second, turns right for 1
+second, and starts moving forward again.  It accomplishes the timed events by
+setting movement signals to PORTB and then calling the Wait routine to wait a
+short amount of time before setting a new movement signal.
+
+\subsection{Wait Routine}
+
+The Wait routine simply runs a long loop during which it does nothing in order
+to "wait" a certain amount of time.
+
+\section{Conclusion}
+
+In this lab, I learned about how to initialize and use basic external
+interrupts.  Additionally, since this lab involved the reading and writing of a
+lot of individual specific bits, I started learning the value of using equate
+definitions and bit shifting for addressing particular byte constants (such as
+for setting I/O port configurations or the interrupt control registers).
+
+\section{Source Code}
+
+\begin{verbatim}
+
+\end{verbatim}
+\end{document}
