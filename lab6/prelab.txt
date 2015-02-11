@@ -1,0 +1,23 @@
+ECE 375 Lab 6 Prelab
+Sean Rettig
+
+1. I have an old remote-controlled Lego Spybotics vehicle that is quite similar
+to a Tekbot in functionality; the remote control allows both forward and
+backward control of both the left and right motors.  Additionally, it even had
+a whisker in the front (only one though instead of two) that would cause it to
+reverse and turn around when running an autonomous program.
+
+For the forward and backward movement of the left and right motors, all that is
+needed is the code from the previous lab in the HitRight and HitLeft routines.
+
+For the actual remote control aspect, the USART can be set up to receive
+commands and trigger an interrupt that will perform those commands (as opposed
+to the robot constantly polling for commands).
+
+For the whisker-triggered turning functionality, an interrupt can be set to go
+off when the whisker is hit and perform the turnaround, just like in the
+BumpBot program from the last lab.  In order to make sure that the turnaround
+functionality overrides manual user control, it can be set as a lower
+interrupt, giving it higher priority.  If need be, interrupts can also be
+manually enabled during manual user control interrupt routines so that the
+interrupts can be interrupted.
