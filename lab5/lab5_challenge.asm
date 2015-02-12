@@ -134,13 +134,13 @@ HitRight:
 		push	mpr			;
 
         cpi     hitlast, 1
-        bnre    SkipR1      ; If we didn't last hit on the right, skip
+        brne    SkipR1      ; If we didn't last hit on the right, skip
         ldi     hitcount, 1 ; If we did, reset the hit count
 
 SkipR1:
 
         cpi     hitlast, 2
-        bnre    SkipR2      ; If we didn't last hit on the left, skip
+        brne    SkipR2      ; If we didn't last hit on the left, skip
         inc     hitcount    ; If we did, increment the hit count
 
 SkipR2:
@@ -187,13 +187,13 @@ HitLeft:
 		push	mpr			;
 
         cpi     hitlast, 1
-        bnre    SkipL1      ; If we didn't last hit on the right, skip
+        brne    SkipL1      ; If we didn't last hit on the right, skip
         inc     hitcount    ; If we did, increment the hit count
 
 SkipL1:
 
         cpi     hitlast, 2
-        bnre    SkipL2      ; If we didn't last hit on the left, skip
+        brne    SkipL2      ; If we didn't last hit on the left, skip
         ldi     hitcount, 1 ; If we did, reset the hit count
 
 SkipL2:
@@ -216,7 +216,7 @@ SkipL2:
 		rcall	Wait			; wait again to turn 180 degrees
         ldi     hitcount, 0
 
-SkipL3
+SkipL3:
 
 		; Move Forward again	
 		ldi		mpr, MovFwd	; Load Move Forwards command
