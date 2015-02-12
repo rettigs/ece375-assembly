@@ -28,6 +28,7 @@
 .def    hitlast = r20           ; var for loop detection
 ; once hitcount = 5, turn more
 .def    hitcount = r21          ; var for loop detection
+.def	turndouble = r22
 
 .equ	WTime = 100				; Time to wait in wait loop
 
@@ -85,6 +86,7 @@ INIT:	; The initialization routine
         ; set variables
         ldi hitlast, 0
         ldi hitcount, 0
+		ldi turndouble, 0
 
 		; Initialize Port B for output
 		ldi mpr, (1<<EngEnL)|(1<<EngEnR)|(1<<EngDirR)|(1<<EngDirL)
@@ -136,6 +138,7 @@ HitRight:
         cpi     hitlast, 1
         brne    SkipR1      ; If we didn't last hit on the right, skip
         ldi     hitcount, 1 ; If we did, reset the hit count
+		ldi		turndouble, 1
 
 SkipR1:
 
@@ -161,13 +164,21 @@ SkipR2:
         cpi     hitcount, 5
         brne    SkipR3
 		rcall	Wait			; wait again to turn 180 degrees
-        ldi     hitcount, 0
 
 SkipR3:
+
+		cpi     turndouble, 1
+        brne    SkipR4
+		rcall	Wait			; wait again to turn 180 degrees
+        ldi     hitcount, 0
+
+SkipR4:
 
 		; Move Forward again	
 		ldi		mpr, MovFwd	; Load Move Forwards command
 		out		PORTB, mpr	; Send command to port
+
+		ldi		turndouble, 0
 
 		pop		mpr		; Restore program state
 		out		SREG, mpr	;
@@ -195,6 +206,7 @@ SkipL1:
         cpi     hitlast, 2
         brne    SkipL2      ; If we didn't last hit on the left, skip
         ldi     hitcount, 1 ; If we did, reset the hit count
+		ldi		turndouble, 1
 
 SkipL2:
 
@@ -213,14 +225,24 @@ SkipL2:
 		rcall	Wait			; Call wait function
         cpi     hitcount, 5
         brne    SkipL3
+		cpi     turndouble, 1
+        brne    SkipL3
+		rcall	Wait			; wait again to turn 180 degrees
+
+SkipL3:
+
+		cpi     turndouble, 1
+        brne    SkipL4
 		rcall	Wait			; wait again to turn 180 degrees
         ldi     hitcount, 0
 
-SkipL3:
+SkipL4:
 
 		; Move Forward again	
 		ldi		mpr, MovFwd	; Load Move Forwards command
 		out		PORTB, mpr	; Send command to port
+
+		ldi		turndouble, 0
 
 		pop		mpr		; Restore program state
 		out		SREG, mpr	;
