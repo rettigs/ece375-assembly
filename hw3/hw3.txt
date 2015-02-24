@@ -7,6 +7,8 @@ Sean Rettig
 
 a.
 
+
+
 b.
 
 .include “m128def.inc”
@@ -17,20 +19,20 @@ START:  RJMP INIT
 .ORG    $0002
         JMP ISR
 .ORG    $0046
-INIT:   ldi mpr, (0<<ISC01)|(0<<ISC00)|(0<<ISC11)|(0<<ISC10); (1)
-        sts EICRA, mpr                                      ; (2)
-        ldi mpr, (1<<INT0)|(1<<INT1)________________________                            ; (3)
-        out EIMSK, mpr________________________(4)
-        ldi mpr, (1<<WskrL)|(1<<WskrR)________________________(5)
-        out PORTA________________________(6)
-        sei________________________(7)
+INIT:   ldi mpr, (1<<ISC01)|(1<<ISC00)  ; (1)
+        sts EICRA, mpr                  ; (2)
+        ldi mpr, (1<<INT0)              ; (3)
+        out EIMSK, mpr                  ; (4)
+        ldi mpr, (0<<0)                 ; (5)
+        out DDRD, mpr                   ; (6)
+        sei                             ; (7)
         LDI XH, high(CTR)
         LDI XL, low(CTR)
         LDI YH, high(DATA)
         LDI YL, low(DATA)
 WAIT:   RJMP WAIT
 .ORG    0x100F
-ISR:    IN mpr, PINA
+ISR:    IN mpr, PIND
         ST Y+, mpr
         INC count
         ST X, count
@@ -38,6 +40,11 @@ ISR:    IN mpr, PINA
 .DSEG
 CTR:    .BYTE 1
 DATA:   .BYTE 256
+
+i.   Lines 1-2 set the two bits of the External Interrupt Control Register that correspond to INT0 to trigger on rising edges.
+ii.  Lines 3-4 disable interrupts for all pins except INT0.
+iii. Lines 5-6 ensure that bit 0 of PORTD is set to receive input by setting it to 0.
+iv.  Line 7 enables interrupts globally.
 
 2.
 
