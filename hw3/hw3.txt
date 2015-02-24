@@ -7,7 +7,7 @@ Sean Rettig
 
 a.
 
-
+When an interrupt occurs (due to a rising edge on bit 0 of PORTD), it will read PINA and save the results in memory, incrementing the address each time so that all data remains available, up to 256 times (since 256 bytes are allocated).  It also stores a count of how many times this occured in memory.
 
 b.
 
@@ -32,7 +32,7 @@ INIT:   ldi mpr, (1<<ISC01)|(1<<ISC00)  ; (1)
         LDI YL, low(DATA)
 WAIT:   RJMP WAIT
 .ORG    0x100F
-ISR:    IN mpr, PIND
+ISR:    IN mpr, PINA
         ST Y+, mpr
         INC count
         ST X, count
