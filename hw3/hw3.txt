@@ -1,0 +1,115 @@
+ECE 375
+HW 2
+Sean Rettig
+2015-02-03
+
+1.
+
+# Fetch cycle
+MAR <- PC
+MDR <- M(MAR)
+IR_high <- MDR, PC <- PC + 1
+
+MAR <- PC
+MDR <- M(MAR)
+IR_low <- MDR, PC <- PC + 1
+
+# Execute cycle
+AC_high <- X_high
+AC_low <- X_low
+AC <- AC - 1, MDR <- R3
+X_high <- AC_high
+X_low <- AC_low
+MAR <- AC
+M(MAR) <- MDR
+
+# Execute cycle (optimized even further)
+AC_high <- X_high
+AC_low <- X_low
+AC <- AC - 1, MDR <- R3
+X_high <- AC_high, MAR <- AC ; I'm fairly sure this is possible
+X_low <- AC_low, M(MAR) <- MDR
+
+
+2.
+
+# Fetch cycle
+MAR <- PC
+MDR <- M(MAR)
+IR_high <- MDR, PC <- PC + 1
+
+MAR <- PC
+MDR <- M(MAR)
+IR_low <- MDR, PC <- PC + 1
+
+# Execute cycle
+SP <- SP + 1
+MAR <- SP, MDR <- M(MAR)
+PC_high <- MDR, SP <- SP + 1
+MAR <- SP, MDR <- M(MAR)
+PC_low <- MDR
+
+3.
+
+a. (assuming the result is placed in R3)
+
+.ORG    0x000F
+        RCALL XOR
+        ...
+.ORG    0x100F
+XOR:    MOV R3, R1 ; Keep the original contents
+        MOV R4, R2 ; Keep the original contents
+        MOV R5, R1 ; Keep the original contents
+        MOV R6, R2 ; Keep the original contents
+
+        ; a ^ b = ~(~(a | b) | ~(~a | ~b))
+
+        ; Left half
+        OR  R3, R4
+        COM R3
+
+        ; Right half
+        COM R5
+        COM R6
+        OR  R5, R6
+        COM R5
+
+        ; Together
+        OR  R3, R5
+        COM R3
+
+        RET
+
+b.
+
+The top of the stack will contain the return address 0x0010, with the low byte pushed on first, then the high byte:
+
++------+
+| 0x00 |
++------+
+| 0x10 |
++------+
+| etc. |
++------+
+
+4.
+
+Instruction             Address     Binary
+--------------------+-------------------------------------------
+.ORG    0x000F      |
+        RCALL XOR   |   000F:       1101    1111    1111    1111
+        ...         |
+.ORG    0x100F      |
+XOR:    MOV R3, R1  |   100F:       0010    1100    0011    0001
+        MOV R4, R2  |   1010:       0010    1100    0100    0010
+        MOV R5, R1  |   1011:       0010    1100    0101    0001
+        MOV R6, R2  |   1012:       0010    1100    0110    0010
+        OR  R3, R4  |   1013:       0010    1000    0011    0100
+        COM R3      |   1014:       1001    0100    0011    0000
+        COM R5      |   1015:       1001    0100    0101    0000
+        COM R6      |   1016:       1001    0100    0110    0000
+        OR  R5, R6  |   1017:       0010    1000    0101    0110
+        COM R5      |   1018:       1001    0100    0101    0000
+        OR  R3, R5  |   1019:       0010    1000    0011    0101
+        COM R3      |   101A:       1001    0100    0011    0000
+        RET         |   101B:       1001    0101    0000    1000
