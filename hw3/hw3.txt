@@ -1,115 +1,145 @@
 ECE 375
-HW 2
+HW 3
 Sean Rettig
-2015-02-03
+2015-02-24
 
 1.
 
-# Fetch cycle
-MAR <- PC
-MDR <- M(MAR)
-IR_high <- MDR, PC <- PC + 1
-
-MAR <- PC
-MDR <- M(MAR)
-IR_low <- MDR, PC <- PC + 1
-
-# Execute cycle
-AC_high <- X_high
-AC_low <- X_low
-AC <- AC - 1, MDR <- R3
-X_high <- AC_high
-X_low <- AC_low
-MAR <- AC
-M(MAR) <- MDR
-
-# Execute cycle (optimized even further)
-AC_high <- X_high
-AC_low <- X_low
-AC <- AC - 1, MDR <- R3
-X_high <- AC_high, MAR <- AC ; I'm fairly sure this is possible
-X_low <- AC_low, M(MAR) <- MDR
-
-
-2.
-
-# Fetch cycle
-MAR <- PC
-MDR <- M(MAR)
-IR_high <- MDR, PC <- PC + 1
-
-MAR <- PC
-MDR <- M(MAR)
-IR_low <- MDR, PC <- PC + 1
-
-# Execute cycle
-SP <- SP + 1
-MAR <- SP, MDR <- M(MAR)
-PC_high <- MDR, SP <- SP + 1
-MAR <- SP, MDR <- M(MAR)
-PC_low <- MDR
-
-3.
-
-a. (assuming the result is placed in R3)
-
-.ORG    0x000F
-        RCALL XOR
-        ...
-.ORG    0x100F
-XOR:    MOV R3, R1 ; Keep the original contents
-        MOV R4, R2 ; Keep the original contents
-        MOV R5, R1 ; Keep the original contents
-        MOV R6, R2 ; Keep the original contents
-
-        ; a ^ b = ~(~(a | b) | ~(~a | ~b))
-
-        ; Left half
-        OR  R3, R4
-        COM R3
-
-        ; Right half
-        COM R5
-        COM R6
-        OR  R5, R6
-        COM R5
-
-        ; Together
-        OR  R3, R5
-        COM R3
-
-        RET
+a.
 
 b.
 
-The top of the stack will contain the return address 0x0010, with the low byte pushed on first, then the high byte:
+.include “m128def.inc”
+.def mpr = r16                      ; Multi-purpose register
+.def count = r17                    ; Assume R17 is initially 0
+.ORG    $0000
+START:  RJMP INIT
+.ORG    $0002
+        JMP ISR
+.ORG    $0046
+INIT:   ldi mpr, (0<<ISC01)|(0<<ISC00)|(0<<ISC11)|(0<<ISC10); (1)
+        sts EICRA, mpr                                      ; (2)
+        ldi mpr, (1<<INT0)|(1<<INT1)________________________                            ; (3)
+        out EIMSK, mpr________________________(4)
+        ldi mpr, (1<<WskrL)|(1<<WskrR)________________________(5)
+        out PORTA________________________(6)
+        sei________________________(7)
+        LDI XH, high(CTR)
+        LDI XL, low(CTR)
+        LDI YH, high(DATA)
+        LDI YL, low(DATA)
+WAIT:   RJMP WAIT
+.ORG    0x100F
+ISR:    IN mpr, PINA
+        ST Y+, mpr
+        INC count
+        ST X, count
+        RETI
+.DSEG
+CTR:    .BYTE 1
+DATA:   .BYTE 256
 
-+------+
-| 0x00 |
-+------+
-| 0x10 |
-+------+
-| etc. |
-+------+
+2.
+
+INIT:   ldi mpr, (1<<EngEnL)|(1<<EngEnR)|(1<<EngDirR)|(1<<EngDirL)
+        out DDRB, mpr
+        ldi mpr, (0<<WskrL)|(0<<WskrR)
+        out DDRD, mpr
+        ldi mpr, (1<<WskrL)|(1<<WskrR)
+        out PORTD, mpr
+        ldi mpr, (0<<ISC01)|(0<<ISC00)|(0<<ISC11)|(0<<ISC10)
+        sts EICRA, mpr
+        ldi mpr, (1<<INT0)|(1<<INT1)
+        out EIMSK, mpr
+
+3.
+
+.include        "m128def.inc"
+.def            mpr = r16
+.def            counter = r17
+.def            state = r18
+
+.ORG            $0000
+RJMP            Initialize
+.ORG            $0020 ; Timer/Counter0 overflow interrupt vector
+                RCALL Reload_Counter
+                RETI
+.ORG            $0046 ; End of interrupt vectors
+Initialize:
+                ; Initialize stack pointer
+                ldi     mpr, HIGH(RAMEND)
+                out     SPH, mpr
+                ldi     mpr, LOW(RAMEND)
+                out     SPL, mpr
+
+                ; Initialize Timer/Counter 0
+                ldi     mpr, (1<<CS02|1<<CS01|1<<CS00) 
+                out     TCCR0, mpr      ; Set normal mode, prescale = 1024
+
+                ; Initialize Timer/Counter 0 Interrupt
+                ldi     mpr, (1<<OCIE0) ; Set Timer 0 OVF interrupt
+                out     TIMSK, mpr      ; Set TIMSK
+                clr     counter
+
+                LDI counter, 100 ; Load loop count = 100
+
+LOOP:
+                IN mpr, TIFR ; Read in TIFR
+                ANDI mpr, 0b00000001 ; Check if TOV0 set
+                BREQ LOOP ; Loop if TOV0 not set
+                LDI mpr, 0b00000001 ; Otherwise, Reset TOV0
+                OUT TIFR, mpr ; Note - write 1 to reset
+                DEC counter ; Decrement count
+                BRNE LOOP ; Loop if count not equal to 0
+                RET 
+                
+Reload_counter:
+                LDI mpr, 99 ; (Re)load value for delay
+                OUT TCNT0, mpr
+                RET
 
 4.
 
-Instruction             Address     Binary
---------------------+-------------------------------------------
-.ORG    0x000F      |
-        RCALL XOR   |   000F:       1101    1111    1111    1111
-        ...         |
-.ORG    0x100F      |
-XOR:    MOV R3, R1  |   100F:       0010    1100    0011    0001
-        MOV R4, R2  |   1010:       0010    1100    0100    0010
-        MOV R5, R1  |   1011:       0010    1100    0101    0001
-        MOV R6, R2  |   1012:       0010    1100    0110    0010
-        OR  R3, R4  |   1013:       0010    1000    0011    0100
-        COM R3      |   1014:       1001    0100    0011    0000
-        COM R5      |   1015:       1001    0100    0101    0000
-        COM R6      |   1016:       1001    0100    0110    0000
-        OR  R5, R6  |   1017:       0010    1000    0101    0110
-        COM R5      |   1018:       1001    0100    0101    0000
-        OR  R3, R5  |   1019:       0010    1000    0011    0101
-        COM R3      |   101A:       1001    0100    0011    0000
-        RET         |   101B:       1001    0101    0000    1000
+.include    "m128def.inc" ; Include definition file
+.def        mpr = r16 ; Multi-purpose register
+.ORG        $0000 ; Reset and Power On interrupt
+            RCALL   initUSART1
+            RJMP    Main
+.ORG        $003E ; USART1, UDRE (Data Register Empty)
+            RCALL   SendData
+RETI ; Return from interrupt
+
+Main:
+            RCALL SendData
+Loop:
+            RJMP Loop
+
+initUSART1:
+            ; Initialize stack
+            LDI     mpr, high(RAMEND)
+            OUT     SPH, mpr
+            LDI     mpr, low(RAMEND)
+            OUT     SPL, mpr
+            ; Initialize I/O Ports
+            ldi     mpr, (1<<PD1) ; Set Port D pin 0 (RXD1) for input
+            out     DDRD, mpr
+            ; Initialize USART0
+            ldi     mpr, (1<<U2X1) ; Set double data rate
+            sts     UCSR1A, mpr
+            ; Set baudrate at 9600
+            ldi     mpr, high(207) ; Load high byte of 0x0340
+            sts     UBRR1H, mpr ; UBRR0H in extended I/O space
+            ldi     mpr, low(207) ; Load low byte of 0x0340
+            sts     UBRR1L, mpr
+            ; Set frame format: 8 data, 2 stop bits, asynchronous, even parity
+            ldi     mpr, (0<<UMSEL1 | 1<<USBS1 | 1<<UCSZ11 | 1<<UCSZ10 | 1<<UPM11 | 0<<UPM10)
+            sts     UCSR1C, mpr ; UCSR0C in extended I/O space
+            ; Enable data register empty interrupts
+            ldi     mpr, (1<<UDRIE1)
+            sts     UCSR1B, mpr
+
+            ret
+
+SendData:
+            sts UDR1, r17 ; Move data to transmit data buffer
+            ret
