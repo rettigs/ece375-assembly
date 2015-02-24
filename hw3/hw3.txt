@@ -48,13 +48,13 @@ iv.  Line 7 enables interrupts globally.
 
 2.
 
-INIT:   ldi mpr, (1<<EngEnL)|(1<<EngEnR)|(1<<EngDirR)|(1<<EngDirL)
-        out DDRB, mpr
-        ldi mpr, (0<<WskrL)|(0<<WskrR)
+INIT:   ldi mpr, (1<<0)|(1<<3)|(1<<2)|(1<<1)
+        out DDRA, mpr
+        ldi mpr, (0<<0)|(0<<1)
         out DDRD, mpr
-        ldi mpr, (1<<WskrL)|(1<<WskrR)
+        ldi mpr, (1<<0)|(1<<1)
         out PORTD, mpr
-        ldi mpr, (0<<ISC01)|(0<<ISC00)|(0<<ISC11)|(0<<ISC10)
+        ldi mpr, (1<<ISC01)|(0<<ISC00)|(1<<ISC11)|(0<<ISC10)
         sts EICRA, mpr
         ldi mpr, (1<<INT0)|(1<<INT1)
         out EIMSK, mpr
