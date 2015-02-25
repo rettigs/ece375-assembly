@@ -19,7 +19,8 @@
 ;*  Internal Register Definitions and Constants
 ;***********************************************************
 .def    mpr = r16               ; Multi-Purpose Register
-.def    command = r17
+.def    data = r17
+.def    accept = r18
 
 .equ    WskrR = 0               ; Right Whisker Input Bit
 .equ    WskrL = 1               ; Left Whisker Input Bit
@@ -55,7 +56,7 @@
 ;- Left wisker
 ;- Right wisker
 ;- USART receive
-.org    $0006
+.org    $003C
         rcall   USART_Receive
         reti
 
@@ -65,6 +66,9 @@
 ; Program Initialization
 ;-----------------------------------------------------------
 INIT:
+    ; Initialize registers
+        clr     accept
+
     ; Initialize stack
         LDI     mpr, high(RAMEND)
         OUT     SPH, mpr
@@ -104,13 +108,20 @@ INIT:
         ldi     mpr, (1<<RXEN1 | 1<<RXCIE1)
         sts     UCSR1B, mpr
 
+    ; Initialize external interrupts
+        ; Set the Interrupt Sense Control to level low for button interrupts (INT7:4)
+        ldi mpr, (0<<ISC21)|(0<<ISC20)
+        sts EICRA, mpr ; Use sts, EICRA in extended I/O space
+        ; Set the External Interrupt Mask
+        ldi mpr, (1<<INT2)
+        out EIMSK, mpr
+        ; Turn on interrupts
+        sei
 
 ;-----------------------------------------------------------
 ; Main Program
 ;-----------------------------------------------------------
 MAIN:
-
-
 
         rjmp    MAIN
 
@@ -121,8 +132,37 @@ MAIN:
 USART_Receive:
         push    mpr
 
-        lds     command, UDR1 ; Read command from Receive Data Buffer
-        out     PORTB, command  ; Send command to port
+        lds     data, UDR1 ; Read data from Receive Data Buffer
+
+        ; Check if it's an ID or a command
+        ldi     mpr, 0b10000000
+        and     mpr, data
+        breq    ProcessID ; If the result is all zeroes, it starts with a 0 and is an ID
+        rjmp    ProcessCommand; Otherwise, it's a command
+
+ProcessID:
+        cpi     data, BotID
+        breq    SetAccept ; If the BotID matches, go into accept mode
+        clr     accept ; If it doesn't match, make sure we're NOT in accept mode
+        rjmp    USART_Receive_End
+
+SetAccept:
+        ldi     accept, 1 ; If it does match, go into accept mode
+        rjmp    USART_Receive_End
+
+ProcessCommand:
+        cpi     accept, 1
+        brne    USART_Receive_End ; If we aren't in accept mode, do nothing
+        ; If we are in accept mode, run the command
+
+        ; Decode command
+        andi    data, 0b01111111
+        lsl     data
+
+        out     PORTB, data  ; Send command to port
+        clr     accept ; Leave accept mode since we just accepted
+
+USART_Receive_End:
 
         pop     mpr
         ret
