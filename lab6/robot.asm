@@ -19,8 +19,14 @@
 ;*  Internal Register Definitions and Constants
 ;***********************************************************
 .def    mpr = r16               ; Multi-Purpose Register
-.def    data = r17
-.def    accept = r18
+.def    waitcnt = r17           ; Wait Loop Counter
+.def    ilcnt = r18             ; Inner Loop Counter
+.def    olcnt = r19             ; Outer Loop Counter
+.def    data = r20
+.def    command = r21
+.def    accept = r22
+
+.equ    WTime = 100             ; Time to wait in wait loop
 
 .equ    WskrR = 0               ; Right Whisker Input Bit
 .equ    WskrL = 1               ; Left Whisker Input Bit
@@ -51,11 +57,12 @@
 ;-----------------------------------------------------------
 .org    $0000                   ; Beginning of IVs
         rjmp    INIT            ; Reset interrupt
-
-;Should have Interrupt vectors for:
-;- Left wisker
-;- Right wisker
-;- USART receive
+.org    $0002
+        rcall   HitRight
+        reti
+.org    $0004
+        rcall   HitLeft
+        reti
 .org    $003C
         rcall   USART_Receive
         reti
@@ -68,6 +75,7 @@
 INIT:
     ; Initialize registers
         clr     accept
+        clr     command
 
     ; Initialize stack
         LDI     mpr, high(RAMEND)
@@ -80,9 +88,13 @@ INIT:
         ; Port D bit 2 corresponds to INT2 and is used for receiving data on USART1
         ; Port D bit 3 corresponds to INT3 and is used for transmitting data on USART1
 
-        ; Set Port D pin 2 (TXD0) for input
-        ldi mpr, (1<<PD2)
+        ; Set Port D pin 2 (TXD0) for input and pins 1-0 for whisker input
+        ldi mpr, (1<<PD2)|(0<<WskrR)|(0<<WskrL)
         out DDRD, mpr
+
+        ; Set pullup resistors
+        ldi mpr, (1<<PD2)|(0<<WskrR)|(0<<WskrL)
+        out PORTD, mpr
 
         ; Initialize Port B for output
         ldi mpr, (1<<EngEnL)|(1<<EngEnR)|(1<<EngDirR)|(1<<EngDirL)
@@ -109,11 +121,11 @@ INIT:
         sts     UCSR1B, mpr
 
     ; Initialize external interrupts
-        ; Set the Interrupt Sense Control to level low for button interrupts (INT7:4)
-        ldi mpr, (0<<ISC21)|(0<<ISC20)
+        ; Set the Interrupt Sense Control to level low
+        ldi mpr, (0<<ISC21)|(0<<ISC20)|(0<<ISC11)|(0<<ISC10)|(0<<ISC01)|(0<<ISC00)
         sts EICRA, mpr ; Use sts, EICRA in extended I/O space
         ; Set the External Interrupt Mask
-        ldi mpr, (1<<INT2)
+        ldi mpr, (1<<INT2)|(1<<INT1)|(1<<INT0)
         out EIMSK, mpr
         ; Turn on interrupts
         sei
@@ -122,7 +134,6 @@ INIT:
 ; Main Program
 ;-----------------------------------------------------------
 MAIN:
-
         rjmp    MAIN
 
 ;***********************************************************
@@ -154,18 +165,106 @@ ProcessCommand:
         cpi     accept, 1
         brne    USART_Receive_End ; If we aren't in accept mode, do nothing
         ; If we are in accept mode, run the command
-
-        ; Decode command
-        andi    data, 0b01111111
-        lsl     data
-
+        lsl     data ; Decode command
         out     PORTB, data  ; Send command to port
+        mov     command, data ; Save what command we're running in case a whisker interrupt needs to go back to it
         clr     accept ; Leave accept mode since we just accepted
 
 USART_Receive_End:
 
         pop     mpr
         ret
+
+;----------------------------------------------------------------
+; Sub:  HitRight
+; Desc: Handles functionality of the TekBot when the right whisker
+;       is triggered.
+;----------------------------------------------------------------
+HitRight:
+        push    mpr         ; Save mpr register
+        push    waitcnt         ; Save wait register
+        in      mpr, SREG   ; Save program state
+        push    mpr         ;
+
+        ; Move Backwards for a second
+        ldi     mpr, MovBck ; Load Move Backwards command
+        out     PORTB, mpr  ; Send command to port
+        ldi     waitcnt, WTime  ; Wait for 1 second
+        rcall   Wait            ; Call wait function
+
+        ; Turn left for a second
+        ldi     mpr, TurnL  ; Load Turn Left Command
+        out     PORTB, mpr  ; Send command to port
+        ldi     waitcnt, WTime  ; Wait for 1 second
+        rcall   Wait            ; Call wait function
+
+        ; Resume previous command
+        out     PORTB, command
+
+        pop     mpr     ; Restore program state
+        out     SREG, mpr   ;
+        pop     waitcnt     ; Restore wait register
+        pop     mpr     ; Restore mpr
+        ret             ; Return from subroutine
+
+;----------------------------------------------------------------
+; Sub:  HitLeft
+; Desc: Handles functionality of the TekBot when the left whisker
+;       is triggered.
+;----------------------------------------------------------------
+HitLeft:
+        push    mpr         ; Save mpr register
+        push    waitcnt         ; Save wait register
+        in      mpr, SREG   ; Save program state
+        push    mpr         ;
+
+        ; Move Backwards for a second
+        ldi     mpr, MovBck ; Load Move Backwards command
+        out     PORTB, mpr  ; Send command to port
+        ldi     waitcnt, WTime  ; Wait for 1 second
+        rcall   Wait            ; Call wait function
+
+        ; Turn right for a second
+        ldi     mpr, TurnR  ; Load Turn Left Command
+        out     PORTB, mpr  ; Send command to port
+        ldi     waitcnt, WTime  ; Wait for 1 second
+        rcall   Wait            ; Call wait function
+
+        ; Resume previous command
+        out     PORTB, command
+
+        pop     mpr     ; Restore program state
+        out     SREG, mpr   ;
+        pop     waitcnt     ; Restore wait register
+        pop     mpr     ; Restore mpr
+        ret             ; Return from subroutine
+
+;----------------------------------------------------------------
+; Sub:  Wait
+; Desc: A wait loop that is 16 + 159975*waitcnt cycles or roughly 
+;       waitcnt*10ms.  Just initialize wait for the specific amount 
+;       of time in 10ms intervals. Here is the general eqaution
+;       for the number of clock cycles in the wait loop:
+;           ((3 * ilcnt + 3) * olcnt + 3) * waitcnt + 13 + call
+;----------------------------------------------------------------
+Wait:
+        push    waitcnt         ; Save wait register
+        push    ilcnt           ; Save ilcnt register
+        push    olcnt           ; Save olcnt register
+
+Loop:   ldi     olcnt, 224      ; load olcnt register
+OLoop:  ldi     ilcnt, 237      ; load ilcnt register
+ILoop:  dec     ilcnt           ; decrement ilcnt
+        brne    ILoop           ; Continue Inner Loop
+        dec     olcnt       ; decrement olcnt
+        brne    OLoop           ; Continue Outer Loop
+        dec     waitcnt     ; Decrement wait 
+        brne    Loop            ; Continue Wait loop    
+
+        pop     olcnt       ; Restore olcnt register
+        pop     ilcnt       ; Restore ilcnt register
+        pop     waitcnt     ; Restore wait register
+        ret             ; Return from subroutine
 
 ;***********************************************************
 ;*  Stored Program Data
