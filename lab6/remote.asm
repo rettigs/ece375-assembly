@@ -19,6 +19,11 @@
 ;*  Internal Register Definitions and Constants
 ;***********************************************************
 .def    mpr = r16               ; Multi-Purpose Register
+.def    waitcnt = r17           ; Wait Loop Counter
+.def    ilcnt = r18             ; Inner Loop Counter
+.def    olcnt = r19             ; Outer Loop Counter
+
+.equ    WTime = 100             ; Time to wait in wait loop
 
 .equ    WskrR = 0               ; Right Whisker Input Bit
 .equ    WskrL = 1               ; Left Whisker Input Bit
@@ -48,19 +53,6 @@
 ;-----------------------------------------------------------
 .org    $0000                   ; Beginning of IVs
         rjmp    INIT            ; Reset interrupt
-.org    $0008
-        rcall   ButtonMovFwd
-        reti
-.org    $000A
-        rcall   ButtonMovBck
-        reti
-.org    $000C
-        rcall   ButtonTurnR
-        reti
-.org    $000E
-        rcall   ButtonTurnL
-        reti
-
 .org    $0046                   ; End of Interrupt Vectors
 
 ;-----------------------------------------------------------
@@ -77,23 +69,10 @@ INIT:
         ; NOTES:
         ; Port D bit 2 corresponds to INT2 and is used for receiving data on USART1
         ; Port D bit 3 corresponds to INT3 and is used for transmitting data on USART1
-        ; Port E bits 7-4 correspond to INT7:4 and are used for receiving button presses
 
-        ; Set Port D for output
-        ldi     mpr, 0b00000100
-        out     DDRD, mpr
-
-        ; Set Port E for input
-        ldi     mpr, 0b00000000
-        out     DDRE, mpr
-
-        ; Enable pull-up resistors
-        ldi     mpr, (0b11110000)
-        out     PORTE, mpr
-
-        ; Set Port B for output
-        ldi     mpr, 0b11111000
-        out     DDRB, mpr
+        ; Set Port D pin 3 (TXD1) for output
+        ldi mpr, (1<<PD3)
+        out DDRD, mpr
 
     ; Initialize USART1
         ldi     mpr, (1<<U2X1) ; Set double data rate
@@ -113,20 +92,16 @@ INIT:
         ldi     mpr, (1<<TXEN1)
         sts     UCSR1B, mpr
 
-    ; Initialize external interrupts
-        ; Set the Interrupt Sense Control to level low for button interrupts (INT7:4)
-        ldi mpr, (0<<ISC71)|(0<<ISC70)|(0<<ISC61)|(0<<ISC60)|(0<<ISC51)|(0<<ISC50)|(0<<ISC41)|(0<<ISC40)
-        sts EICRB, mpr ; Use sts, EICRB in extended I/O space
-        ; Set the External Interrupt Mask
-        ldi mpr, (1<<INT7)|(1<<INT6)|(1<<INT5)|(1<<INT4)
-        out EIMSK, mpr
-        ; Turn on interrupts
-        sei
-
 ;-----------------------------------------------------------
 ; Main Program
 ;-----------------------------------------------------------
 MAIN:
+
+        rcall   ButtonMovFwd
+        rcall   Wait
+        rcall   Wait
+        rcall   ButtonTurnR
+        rcall   Wait
 
         rjmp    MAIN
 
@@ -135,59 +110,58 @@ MAIN:
 ;***********************************************************
 
 ButtonMovFwd:
-        ; Turn on button LED
-        ldi     mpr, $FF
-        out     PORTB, mpr
-
-        ; Send Command
         ldi     mpr, MovFwd
-        out     PORTD, mpr
-
-        ; Turn off button LED
-        ldi     mpr, 0
-        out     PORTB, mpr
-
+        sts     UDR1, mpr
         ret
 
 ButtonMovBck:
-        ; Turn on button LED
-        ldi     mpr, $FF
-        out     PORTB, mpr
-
-        ; Turn off button LED
-        ldi     mpr, 0
-        out     PORTB, mpr
+        ldi     mpr, MovBck
+        sts     UDR1, mpr
         ret
 
 ButtonTurnR:
-        ; Turn on button LED
-        ldi     mpr, $FF
-        out     PORTB, mpr
-
-        ; Turn off button LED
-        ldi     mpr, 0
-        out     PORTB, mpr
+        ldi     mpr, TurnR
+        sts     UDR1, mpr
         ret
 
 ButtonTurnL:
-        ; Turn on button LED
-        ldi     mpr, $FF
-        out     PORTB, mpr
-
-        ; Turn off button LED
-        ldi     mpr, 0
-        out     PORTB, mpr
+        ldi     mpr, TurnL
+        sts     UDR1, mpr
         ret
 
 ButtonHalt:
-        ; Turn on button LED
-        ldi     mpr, $FF
-        out     PORTB, mpr
-
-        ; Turn off button LED
-        ldi     mpr, 0
-        out     PORTB, mpr
+        ldi     mpr, Halt
+        sts     UDR1, mpr
         ret
+
+;----------------------------------------------------------------
+; Sub:  Wait
+; Desc: A wait loop that is 16 + 159975*waitcnt cycles or roughly 
+;       waitcnt*10ms.  Just initialize wait for the specific amount 
+;       of time in 10ms intervals. Here is the general eqaution
+;       for the number of clock cycles in the wait loop:
+;           ((3 * ilcnt + 3) * olcnt + 3) * waitcnt + 13 + call
+;----------------------------------------------------------------
+Wait:
+        ldi     waitcnt, WTime  ; Wait for 1 second
+
+        push    waitcnt         ; Save wait register
+        push    ilcnt           ; Save ilcnt register
+        push    olcnt           ; Save olcnt register
+
+Loop:   ldi     olcnt, 224      ; load olcnt register
+OLoop:  ldi     ilcnt, 237      ; load ilcnt register
+ILoop:  dec     ilcnt           ; decrement ilcnt
+        brne    ILoop           ; Continue Inner Loop
+        dec     olcnt       ; decrement olcnt
+        brne    OLoop           ; Continue Outer Loop
+        dec     waitcnt     ; Decrement wait 
+        brne    Loop            ; Continue Wait loop    
+
+        pop     olcnt       ; Restore olcnt register
+        pop     ilcnt       ; Restore ilcnt register
+        pop     waitcnt     ; Restore wait register
+        ret             ; Return from subroutine
 
 ;***********************************************************
 ;*  Stored Program Data
