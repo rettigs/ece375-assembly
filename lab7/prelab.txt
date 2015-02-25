@@ -1,0 +1,14 @@
+ECE 375 Lab 7 Prelab
+Sean Rettig
+
+1.
+
+STS TCNT1H, R25
+STS TCNT1L, R24
+
+2.
+
+LDS R25, TCNT1H
+LDS R24, TCNT1L
+
+3. 8 microseconds
