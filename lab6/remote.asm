@@ -110,26 +110,36 @@ MAIN:
 ;***********************************************************
 
 ButtonMovFwd:
+        ldi     mpr, BotID
+        sts     UDR1, mpr
         ldi     mpr, MovFwd
         sts     UDR1, mpr
         ret
 
 ButtonMovBck:
+        ldi     mpr, BotID
+        sts     UDR1, mpr
         ldi     mpr, MovBck
         sts     UDR1, mpr
         ret
 
 ButtonTurnR:
+        ldi     mpr, BotID
+        sts     UDR1, mpr
         ldi     mpr, TurnR
         sts     UDR1, mpr
         ret
 
 ButtonTurnL:
+        ldi     mpr, BotID
+        sts     UDR1, mpr
         ldi     mpr, TurnL
         sts     UDR1, mpr
         ret
 
 ButtonHalt:
+        ldi     mpr, BotID
+        sts     UDR1, mpr
         ldi     mpr, Halt
         sts     UDR1, mpr
         ret
