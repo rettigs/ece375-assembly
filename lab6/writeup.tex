@@ -1,0 +1,142 @@
+% template created by: Russell Haering. arr. Joseph Crop
+\documentclass[12pt,letterpaper]{article}
+\usepackage{anysize}
+\marginsize{2cm}{2cm}{1cm}{1cm}
+
+\begin{document}
+
+\begin{titlepage}
+    \vspace*{4cm}
+    \begin{flushright}
+    {\huge
+        ECE 375 Lab 6\\[1cm]
+    }
+    {\large
+        Remotely Operated Vehicle
+    }
+    \end{flushright}
+    \begin{flushleft}
+    Lab Time: Wednesday 5-7
+    \end{flushleft}
+    \begin{flushright}
+    Sean Rettig
+    \vfill
+    \rule{5in}{.5mm}\\
+    TA Signature
+    \end{flushright}
+
+\end{titlepage}
+
+\section{Introduction}
+
+The purpose of this fifth lab was to familiarize ourselves with the concepts
+related to using USART I/O and further improve our knowledge of interrupts.
+
+\section{Program Overview}
+
+\subsection{Remote}
+
+The remote program sends commands to the robot via the USART infrared LED.  For
+each command, it first sends a robot ID that is shared between the remote and
+the robot.  The robot should only respond to commands preceded by the correct
+ID.  The most significant bit of each ID is 0, while the most significant bit
+of each command is 1, allowing the types of data to be differentiated.  Since
+commands store information in the upper 4 bits of the byte, they are shifted
+down so the most significant bit of each command can be a 1; the robot unshifts
+the command before running it.
+
+\subsubsection{Initialization Routine}
+
+First, USART1 is initialized to run at 2400 baud with 8 data bits and 2 stop
+bits; the robot is set the same way.  It also enables transmitting.
+
+\subsubsection{Main Routine}
+
+The main routine simply sends a list of predefined commands to the robot in a
+loop, waiting some number of seconds in between each command.
+
+\subsubsection{Command Routines}
+
+There is a command routine for each of the 5 possible commands (move forward,
+move backward, turn left, turn right, and halt).  Each one simply sends the
+robot ID byte followed by the command byte.
+
+\subsubsection{Wait Routine}
+
+The Wait routine simply runs a long loop during which it does nothing in order
+to "wait" a certain amount of time.
+
+\subsection{Robot}
+
+The robot waits until it 
+
+\subsubsection{Initialization Routine}
+
+First, the I/O ports are initialized so the motors and whiskers can be used
+(just like in the BumpBot program).  Then, USART1 is initialized to run at 2400
+baud with 8 data bits and 2 stop bits; the remote is set the same way.  It also
+enables receiving and receive interrupts.  Interrupts for the whiskers are also
+set.
+
+\subsubsection{Main Routine}
+
+The main routine does nothing but loop infinitely, as all actions to be
+performed run on interrupts.
+
+\subsubsection{USART\_Receive Routine}
+
+This is the real "main" routine; it runs whenever USART data has been received
+and processes it.  It first checks if the data is an ID or a command; if it's
+an ID, it checks if it's the correct one, and if so, goes into "accept mode",
+meaning that it will run the next command given to it.  If it's given a
+command, it will run it only if the robot is already in accept mode, and then
+exit accept mode since it had just accepted a command; the next command
+received from a remote will be preceded by its own ID byte.
+
+\subsubsection{HitRight Routine}
+
+The HitRight Routine is also triggered by interrupts and runs when the right
+whisker is hit.  When this routine runs, it ignores any remote commands given
+to it while it moves backward for 1 second and turns left for 1 second.  It
+will then continue whatever it what doing before the routine was triggered.  It
+accomplishes the timed events by setting movement signals to PORTB and then
+calling the Wait routine to wait a short amount of time before setting a new
+movement signal.
+
+\subsubsection{HitLeft Routine}
+
+The HitLeft Routine is also triggered by interrupts and runs when the left
+whisker is hit.  When this routine runs, it ignores any remote commands given
+to it while it moves backward for 1 second and turns right for 1 second.  It
+will then continue whatever it what doing before the routine was triggered.  It
+accomplishes the timed events by setting movement signals to PORTB and then
+calling the Wait routine to wait a short amount of time before setting a new
+movement signal.
+
+\subsubsection{Wait Routine}
+
+The Wait routine simply runs a long loop during which it does nothing in order
+to "wait" a certain amount of time.
+
+\section{Conclusion}
+
+In this lab, I learned about how to initialize and use USART for both input and
+output, as well as trigger interrupts on USART events.  While the code for this
+lab now seems fairly simple, getting it working for the first time was very
+confusing as there is a lot that can go wrong, given how much configuration is
+needed to get USART, the interrupts, and the ports working not only
+individually, but also between the AVRs.
+
+\section{Source Code}
+
+\subsection{Remote}
+
+\begin{verbatim}
+\end{verbatim}
+
+\subsection{Robot}
+
+\begin{verbatim}
+\end{verbatim}
+
+\end{document}
