@@ -19,9 +19,7 @@
 ;*  Internal Register Definitions and Constants
 ;***********************************************************
 .def    mpr = r16               ; Multi-Purpose Register
-.def    waitcnt = r17           ; Wait Loop Counter
-.def    ilcnt = r18             ; Inner Loop Counter
-.def    olcnt = r19             ; Outer Loop Counter
+.def    B = r17         ; Wait Loop Counter
 .def    data = r20
 .def    command = r21
 .def    accept = r22
@@ -105,13 +103,26 @@ INIT:
         out PORTB, speed ; Set the default output for Port B
 
     ; Initialize timers
+        ; Initialize Timer/Counter 0 for right motor
         LDI     mpr, 0b01110011 ; Activate Fast PWM mode with toggle
         OUT     TCCR0, mpr ; (non-inverting), and set prescalar to 1024
-
+        
+        ; Initialize Timer/Counter 2 for left motor
         LDI     mpr, 0b01110011 ; Activate Fast PWM mode with toggle
         OUT     TCCR2, mpr ; (non-inverting), and set prescalar to 1024
 
+        ; Set the compare value for timer/counter 0 and 2
         rcall   UpdateTimers
+
+        ; Initialize Timer/Counter 3 for wait subroutine
+        LDI     mpr, 0b00000000
+        sts     TCCR3A, mpr
+        LDI     mpr, 0b00000100
+        sts     TCCR3B, mpr
+        ldi     mpr, HIGH($FFFF)
+        sts     OCR3AH, mpr
+        ldi     mpr, LOW($FFFF)
+        sts     OCR3AL, mpr
 
     ; Initialize USART1
         ldi     mpr, (1<<U2X1) ; Set double data rate
@@ -238,7 +249,6 @@ UpdateTimers:
 ;----------------------------------------------------------------
 HitRight:
         push    mpr         ; Save mpr register
-        push    waitcnt         ; Save wait register
         in      mpr, SREG   ; Save program state
         push    mpr         ;
 
@@ -246,14 +256,12 @@ HitRight:
         ldi     mpr, MovBck ; Load Move Backwards command
         or      mpr, speed
         out     PORTB, mpr  ; Send command to port
-        ldi     waitcnt, WTime  ; Wait for 1 second
         rcall   Wait            ; Call wait function
 
         ; Turn left for a second
         ldi     mpr, TurnL  ; Load Turn Left Command
         or      mpr, speed
         out     PORTB, mpr  ; Send command to port
-        ldi     waitcnt, WTime  ; Wait for 1 second
         rcall   Wait            ; Call wait function
 
         ; Resume previous command
@@ -263,7 +271,6 @@ HitRight:
 
         pop     mpr     ; Restore program state
         out     SREG, mpr   ;
-        pop     waitcnt     ; Restore wait register
         pop     mpr     ; Restore mpr
         ret             ; Return from subroutine
 
@@ -274,7 +281,6 @@ HitRight:
 ;----------------------------------------------------------------
 HitLeft:
         push    mpr         ; Save mpr register
-        push    waitcnt         ; Save wait register
         in      mpr, SREG   ; Save program state
         push    mpr         ;
 
@@ -282,14 +288,12 @@ HitLeft:
         ldi     mpr, MovBck ; Load Move Backwards command
         or      mpr, speed
         out     PORTB, mpr  ; Send command to port
-        ldi     waitcnt, WTime  ; Wait for 1 second
         rcall   Wait            ; Call wait function
 
         ; Turn right for a second
         ldi     mpr, TurnR  ; Load Turn Left Command
         or      mpr, speed
         out     PORTB, mpr  ; Send command to port
-        ldi     waitcnt, WTime  ; Wait for 1 second
         rcall   Wait            ; Call wait function
 
         ; Resume previous command
@@ -299,36 +303,27 @@ HitLeft:
 
         pop     mpr     ; Restore program state
         out     SREG, mpr   ;
-        pop     waitcnt     ; Restore wait register
         pop     mpr     ; Restore mpr
         ret             ; Return from subroutine
 
-;----------------------------------------------------------------
-; Sub:  Wait
-; Desc: A wait loop that is 16 + 159975*waitcnt cycles or roughly 
-;       waitcnt*10ms.  Just initialize wait for the specific amount 
-;       of time in 10ms intervals. Here is the general eqaution
-;       for the number of clock cycles in the wait loop:
-;           ((3 * ilcnt + 3) * olcnt + 3) * waitcnt + 13 + call
-;----------------------------------------------------------------
+; Subroutine to wait for 1 s
 Wait:
-        push    waitcnt         ; Save wait register
-        push    ilcnt           ; Save ilcnt register
-        push    olcnt           ; Save olcnt register
-
-Loop:   ldi     olcnt, 224      ; load olcnt register
-OLoop:  ldi     ilcnt, 237      ; load ilcnt register
-ILoop:  dec     ilcnt           ; decrement ilcnt
-        brne    ILoop           ; Continue Inner Loop
-        dec     olcnt       ; decrement olcnt
-        brne    OLoop           ; Continue Outer Loop
-        dec     waitcnt     ; Decrement wait 
-        brne    Loop            ; Continue Wait loop    
-
-        pop     olcnt       ; Restore olcnt register
-        pop     ilcnt       ; Restore ilcnt register
-        pop     waitcnt     ; Restore wait register
-        ret             ; Return from subroutine
+        LDI B, 1 ; Load loop count = 100
+WAIT_10msec:
+        LDI mpr, HIGH(0) ; (Re)load value for delay
+        sts TCNT3H, mpr
+        LDI mpr, LOW(0) ; (Re)load value for delay
+        sts TCNT3L, mpr
+        ; Wait for TCNT3 to roll over
+CHECK:
+        lds     mpr, ETIFR ; Read in TIFR
+        ANDI    mpr, 0b00000100 ; Check if TOV3 set
+        BREQ    CHECK ; Loop if TOV3 not set 
+        LDI mpr, 0b00000100 ; Otherwise, Reset TOV3
+        sts ETIFR, mpr ; Note - write 1 to reset
+        DEC B ; Decrement count
+        BRNE WAIT_10msec ; Loop if count not equal to 0
+        RET 
 
 ;***********************************************************
 ;*  Stored Program Data
