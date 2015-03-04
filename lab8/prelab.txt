@@ -1,0 +1,16 @@
+ECE 375 Lab 8 Prelab
+Sean Rettig
+
+1.  a.  i2c_smbus_read_byte(): Reads and returns 1 byte from the given file, or returns -1 if it fails.
+    b.  i2c_smbus_write_byte(): Writes the given byte to the given file and returns whether it succeeded.
+    c.  i2c_smbus_write_byte_data(): Writes the given byte to the given file using the given command and returns whether it succeeded.
+
+2.  a.  QPainter:   setPen(): Sets the current pen, color, or style.
+                    drawLine(): Draws the line, given as either a line, 2 points, or 4 coordinates.
+    b.  QPen:       setColor(): Sets the color of the current pen.
+    c.  QPoint:     setX(): Sets the x coordinate of the point.
+                    setY(): Sets the y coordinate of the point.
+
+3.  a.  GPIO: A flexible parallel interface that can is highly configurable and can even performs actions such as switching the device on and off.
+        SMBus: A serial interface for low-speed system management communications that can control multiple devices simultaneously.
+        I^2C: A bi-directional two-wire serial bus that provides a communication link between integrated circuits.
