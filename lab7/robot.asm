@@ -78,7 +78,7 @@ INIT:
     ; Initialize registers
         clr     accept
         clr     command
-        clr     speed
+        ldi     speed, 8
 
     ; Initialize stack
         LDI     mpr, high(RAMEND)
@@ -102,8 +102,16 @@ INIT:
         ; Initialize Port B for output
         ldi mpr, $FF
         out DDRB, mpr ; Set the DDR register for Port B
-        ldi mpr, $00
-        out PORTB, mpr ; Set the default output for Port B
+        out PORTB, speed ; Set the default output for Port B
+
+    ; Initialize timers
+        LDI     mpr, 0b01110011 ; Activate Fast PWM mode with toggle
+        OUT     TCCR0, mpr ; (non-inverting), and set prescalar to 1024
+
+        LDI     mpr, 0b01110011 ; Activate Fast PWM mode with toggle
+        OUT     TCCR2, mpr ; (non-inverting), and set prescalar to 1024
+
+        rcall   UpdateTimers
 
     ; Initialize USART1
         ldi     mpr, (1<<U2X1) ; Set double data rate
@@ -196,11 +204,30 @@ SendCommand:
         mov     mpr, command    ; Upper 4 bits is motor command
         or      mpr, speed      ; Lower 4 bits is LED speed indicator
 
+        rcall   UpdateTimers
+
         out     PORTB, mpr  ; Send command/speed to port
         clr     accept ; Leave accept mode since we just accepted
         rjmp    USART_Receive_End
 
 USART_Receive_End:
+        pop     mpr
+        ret
+
+
+UpdateTimers:
+        push    mpr
+
+        mov     mpr, speed
+        lsl     mpr
+        lsl     mpr
+        lsl     mpr
+        lsl     mpr
+        or      mpr, speed
+
+        out     OCR0, mpr
+        out     OCR2, mpr
+
         pop     mpr
         ret
 
@@ -217,18 +244,22 @@ HitRight:
 
         ; Move Backwards for a second
         ldi     mpr, MovBck ; Load Move Backwards command
+        or      mpr, speed
         out     PORTB, mpr  ; Send command to port
         ldi     waitcnt, WTime  ; Wait for 1 second
         rcall   Wait            ; Call wait function
 
         ; Turn left for a second
         ldi     mpr, TurnL  ; Load Turn Left Command
+        or      mpr, speed
         out     PORTB, mpr  ; Send command to port
         ldi     waitcnt, WTime  ; Wait for 1 second
         rcall   Wait            ; Call wait function
 
         ; Resume previous command
-        out     PORTB, command
+        mov     mpr, command
+        or      mpr, speed
+        out     PORTB, mpr
 
         pop     mpr     ; Restore program state
         out     SREG, mpr   ;
@@ -249,18 +280,22 @@ HitLeft:
 
         ; Move Backwards for a second
         ldi     mpr, MovBck ; Load Move Backwards command
+        or      mpr, speed
         out     PORTB, mpr  ; Send command to port
         ldi     waitcnt, WTime  ; Wait for 1 second
         rcall   Wait            ; Call wait function
 
         ; Turn right for a second
         ldi     mpr, TurnR  ; Load Turn Left Command
+        or      mpr, speed
         out     PORTB, mpr  ; Send command to port
         ldi     waitcnt, WTime  ; Wait for 1 second
         rcall   Wait            ; Call wait function
 
         ; Resume previous command
-        out     PORTB, command
+        mov     mpr, command
+        or      mpr, speed
+        out     PORTB, mpr
 
         pop     mpr     ; Restore program state
         out     SREG, mpr   ;
