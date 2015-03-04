@@ -1,0 +1,177 @@
+% template created by: Russell Haering. arr. Joseph Crop
+\documentclass[12pt,letterpaper]{article}
+\usepackage{anysize}
+\marginsize{2cm}{2cm}{1cm}{1cm}
+
+\begin{document}
+
+\begin{titlepage}
+    \vspace*{4cm}
+    \begin{flushright}
+    {\huge
+        ECE 375 Lab 7\\[1cm]
+    }
+    {\large
+        Timers/Counters
+    }
+    \end{flushright}
+    \begin{flushleft}
+    Lab Time: Wednesday 5-7
+    \end{flushleft}
+    \begin{flushright}
+    Sean Rettig
+    \vfill
+    \rule{5in}{.5mm}\\
+    TA Signature
+    \end{flushright}
+
+\end{titlepage}
+
+\section{Introduction}
+
+The purpose of this sixth lab was to extend our remote-controlled robot system
+from the previous lab by learning how to use timer/counters both for waiting
+and adjusting motor speed (or LED brightness).
+
+\section{Program Overview}
+
+\subsection{Remote}
+
+The remote program sends commands to the robot via the USART infrared LED.  For
+each command, it first sends a robot ID that is shared between the remote and
+the robot.  The robot should only respond to commands preceded by the correct
+ID.  The most significant bit of each ID is 0, while the most significant bit
+of each command is 1, allowing the types of data to be differentiated.  Since
+commands store information in the upper 4 bits of the byte, they are shifted
+down so the most significant bit of each command can be a 1; the robot unshifts
+the command before running it.
+
+\subsubsection{Initialization Routine}
+
+An interrrupt is set for the debouncing functionality.  Then the stack is
+initialized, and the I/O ports are set up; button input, LED output to confirm
+button presses, and USART1 output.  Then, USART1 is initialized to run at 2400
+baud with 8 data bits and 2 stop bits; the robot is set the same way.  It also
+enables transmitting.  The debouncer initialization function is run, and global
+interrupts are enabled.
+
+\subsubsection{Main Routine}
+
+The main routine loops over itself, each time checking the button input from
+the debouncer to see if a button was pressed, and then running the relevant
+command subroutine and resetting the relevant bit in the debouncer result.
+
+\subsubsection{Command Routines}
+
+There is a command routine for each of the 6 possible commands (move forward,
+move backward, turn left, turn right, speed up, and slow down).  Each one
+simply sends the robot ID byte followed by the command byte.
+
+\subsection{Robot}
+
+The robot waits until it receives a command from the remote, at which point the
+command is executed.  If either whisker is hit, it will back up and turn away
+in standard BumpBot fashion automatically before it will accept further
+commands.
+
+\subsubsection{Initialization Routine}
+
+First, interrupt vectors are set for whisker input and USART input.  The stack
+is initialized, and the I/O ports are initialized so the motors and whiskers
+can be used (just like in the BumpBot program), as well as USART.  The timers
+are then initialized; timers 0 and 2 for controlling the speed of the right and
+left motors, and timer 1 for the wait subroutine.  Then, USART1 is initialized
+to run at 2400 baud with 8 data bits and 2 stop bits; the remote is set the
+same way.  It also enables receiving and receive interrupts.  Interrupts for
+the whiskers are also set.
+
+\subsubsection{Main Routine}
+
+The main routine does nothing but loop infinitely, as all actions to be
+performed run on interrupts.
+
+\subsubsection{USART\_Receive Routine}
+
+This is the real "main" routine; it runs whenever USART data has been received
+and processes it.  It first checks if the data is an ID or a command; if it's
+an ID, it checks if it's the correct one, and if so, goes into "accept mode",
+meaning that it will run the next command given to it.  If it's given a
+command, it will run it only if the robot is already in accept mode, and then
+exit accept mode since it had just accepted a command; the next command
+received from a remote will be preceded by its own ID byte.  It also includes
+logic for ignoring speed up or slow down commands if they would move the speed
+outside the range of 0-15, and calls the UpdateTimers subroutine when speed
+changes to modify the motor output.
+
+\subsubsection{UpdateTimers Routine}
+
+This routine uses the speed value (0-15) and extrapolates it out to the 0-255
+range to be set as the max for timers 0 and 2, causing the motors to change
+speed in small increments.
+
+\subsubsection{HitRight Routine}
+
+The HitRight Routine is also triggered by interrupts and runs when the right
+whisker is hit.  When this routine runs, it ignores any remote commands given
+to it while it moves backward for 1 second and turns left for 1 second.  It
+will then continue whatever it what doing before the routine was triggered.  It
+accomplishes the timed events by setting movement signals to PORTB and then
+calling the Wait routine to wait a short amount of time before setting a new
+movement signal.
+
+\subsubsection{HitLeft Routine}
+
+The HitLeft Routine is also triggered by interrupts and runs when the left
+whisker is hit.  When this routine runs, it ignores any remote commands given
+to it while it moves backward for 1 second and turns right for 1 second.  It
+will then continue whatever it what doing before the routine was triggered.  It
+accomplishes the timed events by setting movement signals to PORTB and then
+calling the Wait routine to wait a short amount of time before setting a new
+movement signal.
+
+\subsubsection{Wait Routine}
+
+The Wait routine uses timer/counter 1 to count until 1 second has passed, after
+which it returns.
+
+\section{Additional Questions}
+\begin{enumerate}
+
+    \item In this lab, you used the Fast PWM mode of both 8-bit timers to
+        toggle Pins 7 and 4 of Port B, which is one of many possible ways to
+        implement variable speed on a TekBot. Imagine instead that you used
+        just one of the 8-bit timers in Normal mode, and every time it
+        overflowed, it generated an interrupt.  In that ISR, you manually
+        toggled pins 7 and 4 of Port B. What are the advantages and
+        disadvantages to this new approach, compared to the original PWM
+        approach?
+
+        The primary advantage of this approach is that only one timer is
+        required to control the speed of the motors, freeing up the second
+        timer for other uses.  However, doing this makes it harder to run the
+        motors at different speeds, since they're bothing running off of the
+        same timer.
+
+\end{enumerate}
+
+\section{Conclusion}
+
+In this lab, I became familiar with timers, both for waiting/counting and for
+generating waveforms that can be used to alter the speed of a motor or the
+brightness of an LED.  I also learned a bit about debouncing and polling for
+button input, which was especially useful because I wasn't able to get it
+working properly for the previous lab (since I was trying to use interrupts).
+
+\section{Source Code}
+
+\subsection{Remote}
+
+\begin{verbatim}
+\end{verbatim}
+
+\subsection{Robot}
+
+\begin{verbatim}
+\end{verbatim}
+
+\end{document}
