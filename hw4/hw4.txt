@@ -8,7 +8,8 @@ a.
 
 Rd+1:Rd <- Rr+1:Rr
 
-The contents of Rr need to be copied to Rd, and the contents of Rr+1 need to be copied to Rd+1.
+The contents of Rr need to be copied to Rd, and the contents of Rr+1 need to be
+copied to Rd+1.
 
 b.
 
@@ -42,6 +43,8 @@ Inc_Dec |   x
 MH      |   x
 MI      |   x
 
+MUXG
+
   RAL   |  MOVW
  Output |   EX
 --------+--------
@@ -50,6 +53,12 @@ wB      |   Rd
 rA      |  Rr+1
 rB      |   Rr
 
+We read both Rr+1 and Rr, concatenate them, and send them through MUXG and the
+address adder (using "move", keeping it unchanged) so that we can get the upper
+byte into inA and the lower byte into inB (through MUXC).  Both values are then
+written to Rd+1 and Rd, respectively.
+
+2.
 
 Control |  MOVW
 Signals |   EX
