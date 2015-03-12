@@ -8,8 +8,8 @@ a.
 
 Rd+1:Rd <- Rr+1:Rr
 
-The contents of Rr need to be copied to Rd, and the contents of Rr+1 need to be
-copied to Rd+1.
+The contents of Rr are copied to Rd, and the contents of Rr+1 are copied to
+Rd+1.
 
 b.
 
@@ -59,6 +59,68 @@ byte into inA and the lower byte into inB (through MUXC).  Both values are then
 written to Rd+1 and Rd, respectively.
 
 2.
+
+a.
+
+EX1:    DMAR <- AR-1, AR <- AR-1
+EX2:    Rd <- M[DMAR]
+
+In the first execute cycle, the given Address Register (AR) is decremented and
+then stored both in DMAR and back in the register file.  In the second execute
+cycle, the address in DMAR is used to read a byte from data memory, which is
+then stored in Rd.
+
+b.
+
+Control |    LD Rd, -X
+Signals |  EX1      EX2
+--------+--------+--------
+MJ      |   x    |   x
+MK      |   x    |   x
+ML      |   x    |   x
+IR_en   |   x    |   x
+PC_en   |   0    |   0
+PCh_en  |   0    |   0
+PCl_en  |   0    |   0
+NPC_en  |   x    |   x
+SP_en   |   0    |   0
+DEMUX   |   x    |   x
+MA      |   x    |   x
+MB      |   x    |   1
+ALU_f   |  xxxx  |  xxxx
+MC      |   1    |   0
+RF_wA   |   1    |   0
+RF_wB   |   1    |   1
+MD      |   x    |   x
+ME      |   x    |   1
+DM_r    |   x    |   1
+DM_w    |   0    |   0
+MF      |   x    |   x
+MG      |   1    |   x
+Adder_f |   10   |  xx
+Inc_Dec |   x    |   x
+MH      |   1    |   x
+MI      |   x    |   x
+
+  RAL   |    LD Rd, -X
+ Output |  EX1      EX2
+--------+--------+--------
+wA      |  ARh   |   x
+wB      |  ARl   |   Rd
+rA      |  ARh   |   x
+rB      |  ARl   |   x
+
+In the first execute cycle, we read both bytes of the given Address Register
+(AR), concatenate them, and pass them through MUXG to be incremented in the
+address adder.  The incremented address is then passed through MUXH into DMAR
+to access data memory in the next execute cycle, and also stored back in the
+register file, the lower byte passing through MUXC.  In the second execute
+cycle, the address in DMAR is used to read a byte from data memory, which is
+then passed through MUXB and MUXC to inB of the register file so it can be
+stored at Rd.  This instruction takes two cycles because we need to access 3
+different registers from the register file, but can only access 2 per cycle.
+
+3.
 
 Control |  MOVW
 Signals |   EX
