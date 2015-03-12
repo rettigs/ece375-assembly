@@ -1,0 +1,90 @@
+ECE 375
+HW 4
+Sean Rettig
+2015-03-12
+
+1.
+a.
+
+Rd+1:Rd <- Rr+1:Rr
+
+The contents of Rr need to be copied to Rd, and the contents of Rr+1 need to be copied to Rd+1.
+
+b.
+
+Control |  MOVW
+Signals |   EX
+--------+--------
+MJ      |   x
+MK      |   x
+ML      |   x
+IR_en   |   x
+PC_en   |   0
+PCh_en  |   0
+PCl_en  |   0
+NPC_en  |   x
+SP_en   |   0
+DEMUX   |   x
+MA      |   x
+MB      |   x
+ALU_f   |  xxxx
+MC      |   01
+RF_wA   |   1
+RF_wB   |   1
+MD      |   x
+ME      |   x
+DM_r    |   x
+DM_w    |   0
+MF      |   x
+MG      |   1
+Adder_f |   11
+Inc_Dec |   x
+MH      |   x
+MI      |   x
+
+  RAL   |  MOVW
+ Output |   EX
+--------+--------
+wA      |  Rd+1
+wB      |   Rd
+rA      |  Rr+1
+rB      |   Rr
+
+
+Control |  MOVW
+Signals |   EX
+--------+--------
+MJ      |   
+MK      |   
+ML      |   
+IR_en   |   
+PC_en   |   
+PCh_en  |   
+PCl_en  |   
+NPC_en  |   
+SP_en   |   
+DEMUX   |   
+MA      |   
+MB      |   
+ALU_f   |   
+MC      |   
+RF_wA   |   
+RF_wB   |   
+MD      |   
+ME      |   
+DM_r    |   
+DM_w    |   
+MF      |   
+MG      |   
+Adder_f |   
+Inc_Dec |   
+MH      |   
+MI      |   
+
+  RAL   |  MOVW
+ Output |   EX
+--------+--------
+wA      |   
+wB      |   
+rA      |   
+rB      |   
