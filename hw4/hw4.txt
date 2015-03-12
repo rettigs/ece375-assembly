@@ -173,46 +173,69 @@ wB      |   x    |   x
 rA      |   x    |   RA+1
 rB      |   x    |   RA
 
+In the first execute cycle, we use MUXI to read the low byte of RAR and use the
+stack pointer to store it on the stack in data memory, decrementing the stack
+pointer afterwards.  We do the same with the high byte of RAR in the next
+execute cycle.  Then we read both bytes of Z from the register file,
+concatenate them, pass the result through MUXG and the address adder (without
+changing it), and then sending it to PC through MUXJ.
+
 4.
 
 a.
+
+EX1:    SP <- SP+1
+EX2:    SP <- SP+1, PCh <- M[SP]
+EX3:    PCl <- M[SP]
+
+Since CALL decrements the stack pointer after storing the return address (RA),
+we increment it before using it both times.  We then read each byte at the
+addresses in data memory pointed to by the stack pointer and store them in PC
+so that we jump back to the return address on the next fetch cycle.
 
 b.
 
 Control |           RET
 Signals |  EX1      EX2      EX3
 --------+--------+--------+--------
-MJ      |        |        |    
-MK      |        |        |    
-ML      |        |        |    
-IR_en   |        |        |    
-PC_en   |        |        |    
-PCh_en  |        |        |    
-PCl_en  |        |        |    
-NPC_en  |        |        |    
-SP_en   |        |        |    
-DEMUX   |        |        |    
-MA      |        |        |    
-MB      |        |        |    
-ALU_f   |        |        |    
-MC      |        |        |    
-RF_wA   |        |        |    
-RF_wB   |        |        |    
-MD      |        |        |    
-ME      |        |        |    
-DM_r    |        |        |    
-DM_w    |        |        |    
-MF      |        |        |    
-MG      |        |        |    
-Adder_f |        |        |    
-Inc_Dec |        |        |    
-MH      |        |        |    
-MI      |        |        |    
+MJ      |   x    |   x    |   x
+MK      |   x    |   x    |   x
+ML      |   x    |   x    |   x
+IR_en   |   0    |   0    |   x
+PC_en   |   x    |   0    |   0
+PCh_en  |   x    |   1    |   0
+PCl_en  |   x    |   0    |   1
+NPC_en  |   x    |   x    |   x
+SP_en   |   1    |   1    |   0
+DEMUX   |   x    |   1    |   0     (Assuming 1 does high byte and 0 does low byte)
+MA      |   x    |   x    |   x
+MB      |   x    |   x    |   x
+ALU_f   |  xxxx  |  xxxx  |  xxxx
+MC      |   x    |   x    |   x
+RF_wA   |   0    |   0    |   0
+RF_wB   |   0    |   0    |   0
+MD      |   x    |   x    |   x
+ME      |   x    |   0    |   0
+DM_r    |   x    |   1    |   1
+DM_w    |   0    |   0    |   0
+MF      |   x    |   x    |   x
+MG      |   x    |   x    |   x
+Adder_f |   xx   |   xx   |   xx
+Inc_Dec |   0    |   0    |   x
+MH      |   x    |   x    |   x
+MI      |   x    |   x    |   x
 
   RAL   |           RET
  Output |  EX1      EX2      EX3
 --------+--------+--------+--------
-wA      |        |        |    
-wB      |        |        |     
-rA      |        |        |    
-rB      |        |        |    
+wA      |   x    |   x    |   x
+wB      |   x    |   x    |   x 
+rA      |   x    |   x    |   x
+rB      |   x    |   x    |   x
+
+In the first execute cycle, we increment the stack pointer, and that's all we
+can do since it needs another cycle before it will latch and become usable.  In
+the second execute cycle, we increment it again (for use in execute cycle 3)
+and use the current stack pointer to read the high byte of the return address
+(RA) from the stack in data memory and send it to PCh through DEMUX.  In the
+third execute cycle, we read the low byte of the RA and send it to PCl.
