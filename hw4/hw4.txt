@@ -4,6 +4,7 @@ Sean Rettig
 2015-03-12
 
 1.
+
 a.
 
 Rd+1:Rd <- Rr+1:Rr
@@ -78,7 +79,7 @@ Signals |  EX1      EX2
 MJ      |   x    |   x
 MK      |   x    |   x
 ML      |   x    |   x
-IR_en   |   x    |   x
+IR_en   |   0    |   x
 PC_en   |   0    |   0
 PCh_en  |   0    |   0
 PCl_en  |   0    |   0
@@ -122,40 +123,96 @@ different registers from the register file, but can only access 2 per cycle.
 
 3.
 
-Control |  MOVW
-Signals |   EX
---------+--------
-MJ      |   
-MK      |   
-ML      |   
-IR_en   |   
-PC_en   |   
-PCh_en  |   
-PCl_en  |   
-NPC_en  |   
-SP_en   |   
-DEMUX   |   
-MA      |   
-MB      |   
-ALU_f   |   
-MC      |   
-RF_wA   |   
-RF_wB   |   
-MD      |   
-ME      |   
-DM_r    |   
-DM_w    |   
-MF      |   
-MG      |   
-Adder_f |   
-Inc_Dec |   
-MH      |   
-MI      |   
+a.
 
-  RAL   |  MOVW
- Output |   EX
---------+--------
-wA      |   
-wB      |   
-rA      |   
-rB      |   
+EX1:    M[SP] <- RARl, SP <- SP-1
+EX2:    M[SP] <- RARh, SP <- SP-1, PC <- Z
+
+Since RAR <- PC+1 already happened in the fetch cycle, we can go straight to
+copying the high and low bytes of the RAR (Return Address Register) into the
+stack, decrementing the stack pointer after each byte is added.  We then copy
+the contents of the Z register to PC to jump to the next instruction.
+
+b.
+
+Control |      ICALL
+Signals |  EX1      EX2
+--------+--------+--------
+MJ      |   x    |   1
+MK      |   x    |   x
+ML      |   x    |   x
+IR_en   |   0    |   x
+PC_en   |   x    |   1
+PCh_en  |   0    |   0
+PCl_en  |   0    |   0
+NPC_en  |   x    |   x
+SP_en   |   1    |   1
+DEMUX   |   x    |   x
+MA      |   x    |   x
+MB      |   x    |   x
+ALU_f   |  xxxx  |  xxxx
+MC      |   xx   |   x
+RF_wA   |   0    |   0
+RF_wB   |   0    |   0
+MD      |   0    |   0
+ME      |   0    |   0
+DM_r    |   0    |   x
+DM_w    |   1    |   0
+MF      |   x    |   x
+MG      |   x    |   1
+Adder_f |   xx   |   11
+Inc_Dec |   1    |   1
+MH      |   x    |   x
+MI      |   0    |   1
+
+  RAL   |      ICALL
+ Output |  EX1      EX2
+--------+--------+--------
+wA      |   x    |   x
+wB      |   x    |   x
+rA      |   x    |   RA+1
+rB      |   x    |   RA
+
+4.
+
+a.
+
+b.
+
+Control |           RET
+Signals |  EX1      EX2      EX3
+--------+--------+--------+--------
+MJ      |        |        |    
+MK      |        |        |    
+ML      |        |        |    
+IR_en   |        |        |    
+PC_en   |        |        |    
+PCh_en  |        |        |    
+PCl_en  |        |        |    
+NPC_en  |        |        |    
+SP_en   |        |        |    
+DEMUX   |        |        |    
+MA      |        |        |    
+MB      |        |        |    
+ALU_f   |        |        |    
+MC      |        |        |    
+RF_wA   |        |        |    
+RF_wB   |        |        |    
+MD      |        |        |    
+ME      |        |        |    
+DM_r    |        |        |    
+DM_w    |        |        |    
+MF      |        |        |    
+MG      |        |        |    
+Adder_f |        |        |    
+Inc_Dec |        |        |    
+MH      |        |        |    
+MI      |        |        |    
+
+  RAL   |           RET
+ Output |  EX1      EX2      EX3
+--------+--------+--------+--------
+wA      |        |        |    
+wB      |        |        |     
+rA      |        |        |    
+rB      |        |        |    
