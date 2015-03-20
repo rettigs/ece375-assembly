@@ -89,7 +89,7 @@ DEMUX   |   x    |   x
 MA      |   x    |   x
 MB      |   x    |   1
 ALU_f   |  xxxx  |  xxxx
-MC      |   1    |   0
+MC      |   1    |   0      <- forgot second digit, but correct if padded out
 RF_wA   |   1    |   0
 RF_wB   |   1    |   1
 MD      |   x    |   x
@@ -145,7 +145,7 @@ IR_en   |   0    |   x
 PC_en   |   x    |   1
 PCh_en  |   0    |   0
 PCl_en  |   0    |   0
-NPC_en  |   x    |   x
+NPC_en  |   x    |   x      <- EX1: NPC_en should be 0?
 SP_en   |   1    |   1
 DEMUX   |   x    |   x
 MA      |   x    |   x
@@ -156,8 +156,8 @@ RF_wA   |   0    |   0
 RF_wB   |   0    |   0
 MD      |   0    |   0
 ME      |   0    |   0
-DM_r    |   0    |   x
-DM_w    |   1    |   0
+DM_r    |   0    |   x      <- EX2: DM_r should be 0?
+DM_w    |   1    |   0      <- EX2: DM_w should be 1?
 MF      |   x    |   x
 MG      |   x    |   1
 Adder_f |   xx   |   11
@@ -170,8 +170,8 @@ MI      |   0    |   1
 --------+--------+--------
 wA      |   x    |   x
 wB      |   x    |   x
-rA      |   x    |   RA+1
-rB      |   x    |   RA
+rA      |   x    |   RA+1   <- Zh
+rB      |   x    |   RA     <- Zl
 
 In the first execute cycle, we use MUXI to read the low byte of RAR and use the
 stack pointer to store it on the stack in data memory, decrementing the stack
@@ -202,9 +202,9 @@ MJ      |   x    |   x    |   x
 MK      |   x    |   x    |   x
 ML      |   x    |   x    |   x
 IR_en   |   0    |   0    |   x
-PC_en   |   x    |   0    |   0
-PCh_en  |   x    |   1    |   0
-PCl_en  |   x    |   0    |   1
+PC_en   |   x    |   0    |   0     <- EX1: PC_en should be 0?
+PCh_en  |   x    |   1    |   0     <- EX1: PCh_en should be 0?
+PCl_en  |   x    |   0    |   1     <- EX1: PCl_en should be 0?
 NPC_en  |   x    |   x    |   x
 SP_en   |   1    |   1    |   0
 DEMUX   |   x    |   1    |   0     (Assuming 1 does high byte and 0 does low byte)
